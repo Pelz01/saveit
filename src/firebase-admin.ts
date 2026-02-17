@@ -94,3 +94,32 @@ export async function incrementTelegramDownloads(telegramId: number) {
       lastDownload: admin.firestore.FieldValue.serverTimestamp(),
     });
 }
+
+/**
+ * Increment the global download counter (all sources)
+ */
+export async function incrementGlobalDownloads() {
+  if (!db) return;
+
+  await db
+    .collection("stats")
+    .doc("global")
+    .set(
+      { totalDownloads: admin.firestore.FieldValue.increment(1) },
+      { merge: true }
+    );
+}
+
+/**
+ * Get the global download count
+ */
+export async function getGlobalDownloadCount(): Promise<number> {
+  if (!db) return 0;
+
+  try {
+    const doc = await db.collection("stats").doc("global").get();
+    return doc.exists ? doc.data()?.totalDownloads || 0 : 0;
+  } catch {
+    return 0;
+  }
+}

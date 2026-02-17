@@ -5,5 +5,7 @@ logs/
 .env
 cookies.txt
 .download-count
+*-firebase-adminsdk-*.json
+firebase-service-account.json
 *.log
 .DS_Store

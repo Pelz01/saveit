@@ -7,7 +7,7 @@ import { message } from "telegraf/filters";
 import { getVideoInfo, downloadVideo } from "../engine/grabh";
 import { downloadQueue } from "../engine/queue";
 import { InputFile } from "telegraf/types";
-import { saveTelegramUser, incrementTelegramDownloads } from "../firebase-admin";
+import { saveTelegramUser, incrementTelegramDownloads, incrementGlobalDownloads } from "../firebase-admin";
 
 const DOWNLOAD_DIR = process.env.DOWNLOAD_DIR || "./downloads";
 const URL_REGEX = /https?:\/\/[^\s]+/gi;
@@ -214,8 +214,9 @@ export function startBot(token: string) {
         }
       );
 
-      // Track download in Firestore
+      // Track download in Firestore (per-user + global)
       incrementTelegramDownloads(ctx.message.from.id).catch(() => {});
+      incrementGlobalDownloads().catch(() => {});
 
       // Delete progress message after video is sent
       await ctx.telegram
