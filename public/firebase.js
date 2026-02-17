@@ -22,6 +22,15 @@ firebaseReadyPromise = fetch('/api/config')
     googleProvider = new firebase.auth.GoogleAuthProvider();
     firebaseReady = true;
 
+    // Handle redirect result (user comes back after Google sign-in)
+    auth.getRedirectResult().then(result => {
+      if (result.user) {
+        saveUserToFirestore(result.user);
+      }
+    }).catch(err => {
+      console.warn('[Auth] Redirect result error:', err);
+    });
+
     console.log('[Firebase] Initialized');
   })
   .catch(err => {
@@ -32,14 +41,8 @@ firebaseReadyPromise = fetch('/api/config')
 
 async function signInWithGoogle() {
   if (!firebaseReady) throw new Error('Firebase not configured');
-  try {
-    const result = await auth.signInWithPopup(googleProvider);
-    await saveUserToFirestore(result.user);
-    return result.user;
-  } catch (err) {
-    console.error('[Auth Error]', err);
-    throw err;
-  }
+  // Redirect in same tab — no popup, no new tab
+  await auth.signInWithRedirect(googleProvider);
 }
 
 function signOutUser() {
