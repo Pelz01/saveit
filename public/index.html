@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="GRABH — Paste a link. Get the video. The minimalist universal video downloader."
+    />
+    <title>GRABH — The Minimalist Downloader</title>
+
+    <!-- Satoshi Font -->
+    <link
+      href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700,800&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="/styles.css" />
+
+    <!-- Favicon (inline SVG) -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⬇</text></svg>"
+    />
+  </head>
+  <body>
+    <!-- ── Auth Chip (top-right) ── -->
+    <div class="auth-chip" id="authChip" style="display: none;">
+      <img class="auth-chip__avatar" id="authAvatar" src="" alt="" />
+      <span class="auth-chip__name" id="authName"></span>
+    </div>
+
+    <main class="app">
+      <!-- ── Hero ── -->
+      <section class="hero">
+        <div class="hero__logo">
+          <div class="hero__icon">⬇</div>
+          <h1 class="hero__title">grabh</h1>
+        </div>
+        <p class="hero__subtitle">Paste a link. Get the video.</p>
+      </section>
+
+      <!-- ── Search ── -->
+      <section class="search">
+        <form class="search__form" id="searchForm">
+          <input
+            type="url"
+            class="search__input"
+            id="urlInput"
+            placeholder="Paste any video link here..."
+            autocomplete="off"
+            spellcheck="false"
+            required
+          />
+          <button type="submit" class="search__button" id="searchButton">
+            <span class="search__button-icon">⬇</span>
+            Grab It
+          </button>
+        </form>
+        <p class="search__hint" id="searchHint">Max file size: <span id="maxSizeLabel">200</span>MB</p>
+      </section>
+
+      <!-- ── Loading ── -->
+      <section class="loading" id="loading">
+        <div class="progress">
+          <div class="progress__bar" id="searchProgressBar"></div>
+        </div>
+        <p class="loading__text" id="loadingText">Searching for your video…</p>
+        <p class="loading__percent" id="loadingPercent">0%</p>
+      </section>
+
+      <!-- ── Error ── -->
+      <section class="error" id="error">
+        <div class="error__icon">😕</div>
+        <p class="error__message" id="errorMessage">
+          Something went wrong. Please check the URL and try again.
+        </p>
+      </section>
+
+      <!-- ── Result Card ── -->
+      <section class="result" id="result">
+        <article class="result__card">
+          <div class="result__thumbnail-wrap">
+            <img
+              class="result__thumbnail"
+              id="resultThumbnail"
+              src=""
+              alt="Video thumbnail"
+            />
+            <span class="result__duration" id="resultDuration"></span>
+          </div>
+          <div class="result__body">
+            <h2 class="result__title" id="resultTitle"></h2>
+            <div class="result__meta">
+              <span class="result__meta-item">
+                <span class="result__meta-icon">👤</span>
+                <span id="resultUploader"></span>
+              </span>
+              <span class="result__meta-item">
+                <span class="result__meta-icon">📺</span>
+                <span id="resultPlatform"></span>
+              </span>
+            </div>
+            <div class="result__actions">
+              <button class="result__download-btn" id="downloadBtn" type="button">
+                <span id="downloadBtnText">⬇ Download MP4</span>
+                <span id="downloadBtnSpinner" class="btn-spinner" style="display:none;"></span>
+              </button>
+              <button class="result__copy-btn" id="copyBtn" type="button">
+                📋 Copy Link
+              </button>
+            </div>
+            <!-- Queue status -->
+            <p class="queue-status" id="queueStatus" style="display: none;"></p>
+          </div>
+        </article>
+      </section>
+
+      <!-- ── Supported Platforms ── -->
+      <section class="platforms">
+        <p class="platforms__label">Works with</p>
+        <div class="platforms__list">
+          <span class="platforms__item">YouTube</span>
+          <span class="platforms__item">Instagram</span>
+          <span class="platforms__item">TikTok</span>
+          <span class="platforms__item">Twitter / X</span>
+          <span class="platforms__item">Reddit</span>
+          <span class="platforms__item">Facebook</span>
+          <span class="platforms__item">1000+ more</span>
+        </div>
+      </section>
+    </main>
+
+    <!-- ── Footer ── -->
+    <footer class="footer">
+      <p class="footer__text">
+        Built with <span class="footer__heart">♥</span> — Powered by yt-dlp
+      </p>
+    </footer>
+
+    <!-- ── Auth Modal ── -->
+    <div class="auth-modal" id="authModal">
+      <div class="auth-modal__backdrop" id="authModalBackdrop"></div>
+      <div class="auth-modal__card">
+        <div class="auth-modal__icon">🎬</div>
+        <h3 class="auth-modal__title">Your video is ready!</h3>
+        <p class="auth-modal__text">Sign in with Google to save it to your device.</p>
+        <button class="auth-modal__google-btn" id="googleSignInBtn" type="button">
+          <svg class="auth-modal__google-icon" viewBox="0 0 24 24" width="20" height="20">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Continue with Google
+        </button>
+        <p class="auth-modal__note">We only need your email. No spam, ever.</p>
+      </div>
+    </div>
+
+    <!-- ── Firebase SDK (compat) ── -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="/firebase.js"></script>
+
+    <script>
+      // ──────────────────────────────────────
+      // GRABH Frontend Logic
+      // ──────────────────────────────────────
+
+      const form = document.getElementById("searchForm");
+      const urlInput = document.getElementById("urlInput");
+      const searchButton = document.getElementById("searchButton");
+      const loading = document.getElementById("loading");
+      const error = document.getElementById("error");
+      const errorMessage = document.getElementById("errorMessage");
+      const result = document.getElementById("result");
+
+      // Result elements
+      const resultThumbnail = document.getElementById("resultThumbnail");
+      const resultDuration = document.getElementById("resultDuration");
+      const resultTitle = document.getElementById("resultTitle");
+      const resultUploader = document.getElementById("resultUploader");
+      const resultPlatform = document.getElementById("resultPlatform");
+      const downloadBtn = document.getElementById("downloadBtn");
+      const copyBtn = document.getElementById("copyBtn");
+
+      // Auth elements
+      const authChip = document.getElementById("authChip");
+      const authAvatar = document.getElementById("authAvatar");
+      const authName = document.getElementById("authName");
+      const authModal = document.getElementById("authModal");
+      const authModalBackdrop = document.getElementById("authModalBackdrop");
+      const googleSignInBtn = document.getElementById("googleSignInBtn");
+      const queueStatus = document.getElementById("queueStatus");
+
+      let currentVideoUrl = "";
+      let pendingDownload = null; // stores download fn to run after auth
+
+      // ── Fetch server config ──
+      const maxSizeLabel = document.getElementById('maxSizeLabel');
+      fetch('/api/status')
+        .then(r => r.json())
+        .then(data => {
+          if (data.maxFileSizeMB) maxSizeLabel.textContent = data.maxFileSizeMB;
+        })
+        .catch(() => {});
+
+      // ── Auth State ──
+      onAuthChange((user) => {
+        if (user) {
+          authAvatar.src = user.photoURL || '';
+          authAvatar.alt = user.displayName || '';
+          authName.textContent = (user.displayName || user.email || '').split(' ')[0];
+          authChip.style.display = 'flex';
+        } else {
+          authChip.style.display = 'none';
+        }
+      });
+
+      // ── Auth Modal ──
+      function showAuthModal() {
+        authModal.classList.add('is-visible');
+      }
+
+      function hideAuthModal() {
+        authModal.classList.remove('is-visible');
+      }
+
+      authModalBackdrop.addEventListener('click', hideAuthModal);
+
+      googleSignInBtn.addEventListener('click', async () => {
+        googleSignInBtn.disabled = true;
+        googleSignInBtn.textContent = 'Signing in…';
+
+        try {
+          await signInWithGoogle();
+          hideAuthModal();
+
+          // If there's a pending download, execute it
+          if (pendingDownload) {
+            const fn = pendingDownload;
+            pendingDownload = null;
+            fn();
+          }
+        } catch (err) {
+          console.error('[Auth Error]', err);
+          googleSignInBtn.textContent = 'Try again';
+        } finally {
+          googleSignInBtn.disabled = false;
+          // Reset button text after a delay
+          setTimeout(() => {
+            googleSignInBtn.innerHTML = `
+              <svg class="auth-modal__google-icon" viewBox="0 0 24 24" width="20" height="20">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+              </svg>
+              Continue with Google`;
+          }, 2000);
+        }
+      });
+
+      function showState(state) {
+        loading.classList.remove("is-visible");
+        error.classList.remove("is-visible");
+        result.classList.remove("is-visible");
+
+        if (state === "loading") loading.classList.add("is-visible");
+        if (state === "error") error.classList.add("is-visible");
+        if (state === "result") result.classList.add("is-visible");
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const url = urlInput.value.trim();
+        if (!url) return;
+
+        currentVideoUrl = url;
+        searchButton.disabled = true;
+        showState('loading');
+
+        // Simulated progress for search
+        let searchProgress = 0;
+        const searchBar = document.getElementById('searchProgressBar');
+        const loadingText = document.getElementById('loadingText');
+        const loadingPercent = document.getElementById('loadingPercent');
+
+        searchBar.style.width = '0%';
+        loadingPercent.textContent = '0%';
+        loadingText.textContent = 'Connecting…';
+
+        const searchInterval = setInterval(() => {
+          if (searchProgress < 30) {
+            searchProgress += Math.random() * 8;
+            loadingText.textContent = 'Connecting…';
+          } else if (searchProgress < 60) {
+            searchProgress += Math.random() * 5;
+            loadingText.textContent = 'Fetching video info…';
+          } else if (searchProgress < 85) {
+            searchProgress += Math.random() * 2;
+            loadingText.textContent = 'Processing metadata…';
+          } else if (searchProgress < 95) {
+            searchProgress += Math.random() * 0.5;
+            loadingText.textContent = 'Almost there…';
+          }
+          searchProgress = Math.min(searchProgress, 95);
+          searchBar.style.width = `${searchProgress}%`;
+          loadingPercent.textContent = `${Math.round(searchProgress)}%`;
+        }, 200);
+
+        try {
+          const res = await fetch('/api/grabh', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url }),
+          });
+
+          clearInterval(searchInterval);
+          searchBar.style.width = '100%';
+          loadingPercent.textContent = '100%';
+          loadingText.textContent = 'Done!';
+          await new Promise(r => setTimeout(r, 300));
+
+          const data = await res.json();
+
+          if (!res.ok || !data.success) {
+            throw new Error(data.error || 'Failed to fetch video info');
+          }
+
+          const info = data.data;
+
+          // Populate result card
+          resultThumbnail.src = info.thumbnail || '';
+          resultThumbnail.alt = info.title;
+          resultDuration.textContent = info.duration_string || '';
+          resultTitle.textContent = info.title;
+          resultUploader.textContent = info.uploader;
+          resultPlatform.textContent = capitalize(info.extractor);
+
+          // Store download URL on the button
+          downloadBtn.dataset.url = `/api/download?url=${encodeURIComponent(url)}`;
+          downloadBtn.dataset.title = info.title || 'video';
+
+          showState('result');
+        } catch (err) {
+          clearInterval(searchInterval);
+          errorMessage.textContent =
+            err.message ||
+            'Something went wrong. Please check the URL and try again.';
+          showState('error');
+        } finally {
+          searchButton.disabled = false;
+        }
+      });
+
+      // ── Download with auth gate ──
+      const downloadBtnText = document.getElementById('downloadBtnText');
+      const downloadBtnSpinner = document.getElementById('downloadBtnSpinner');
+
+      async function startDownload() {
+        const dlUrl = downloadBtn.dataset.url;
+        if (!dlUrl || downloadBtn.disabled) return;
+
+        downloadBtn.disabled = true;
+        downloadBtnText.textContent = '0%';
+        downloadBtnSpinner.style.display = 'inline-block';
+        queueStatus.style.display = 'none';
+
+        // Show queue status
+        let queuePoll = setInterval(async () => {
+          try {
+            const s = await fetch('/api/status').then(r => r.json());
+            const q = s.queue;
+            if (q.waiting > 0 || q.active > 0) {
+              queueStatus.textContent = `⏳ ${q.active} downloading, ${q.waiting} in queue`;
+              queueStatus.style.display = 'block';
+            }
+          } catch {}
+        }, 2000);
+
+        try {
+          const res = await fetch(dlUrl);
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({ error: 'Download failed' }));
+            throw new Error(err.error || 'Download failed');
+          }
+
+          const contentLength = parseInt(res.headers.get('Content-Length') || '0', 10);
+          const reader = res.body.getReader();
+          const chunks = [];
+          let received = 0;
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+            received += value.length;
+
+            if (contentLength > 0) {
+              const pct = Math.round((received / contentLength) * 100);
+              downloadBtnText.textContent = `${pct}%`;
+            } else {
+              downloadBtnText.textContent = `${(received / 1024 / 1024).toFixed(1)} MB`;
+            }
+          }
+
+          const blob = new Blob(chunks, { type: 'video/mp4' });
+          const safeName = (downloadBtn.dataset.title || 'video')
+            .replace(/[^\w\s\-_.()]/g, '')
+            .replace(/\s+/g, '_')
+            .trim() || 'video';
+
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `${safeName}.mp4`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(a.href);
+
+          // Track in Firestore
+          incrementDownloadCount().catch(() => {});
+
+          downloadBtnText.textContent = '✓ Downloaded!';
+          setTimeout(() => { downloadBtnText.textContent = '⬇ Download MP4'; }, 2500);
+        } catch (err) {
+          downloadBtnText.textContent = '✕ Failed - Try Again';
+          setTimeout(() => { downloadBtnText.textContent = '⬇ Download MP4'; }, 3000);
+        } finally {
+          clearInterval(queuePoll);
+          queueStatus.style.display = 'none';
+          downloadBtn.disabled = false;
+          downloadBtnSpinner.style.display = 'none';
+        }
+      }
+
+      downloadBtn.addEventListener('click', () => {
+        const user = getCurrentUser();
+        if (user) {
+          // Authenticated — download immediately
+          startDownload();
+        } else {
+          // Not authenticated — show modal, queue download
+          pendingDownload = startDownload;
+          showAuthModal();
+        }
+      });
+
+      // Copy original link
+      copyBtn.addEventListener('click', () => {
+        if (currentVideoUrl) {
+          navigator.clipboard.writeText(currentVideoUrl).then(() => {
+            const original = copyBtn.textContent;
+            copyBtn.textContent = '✓ Copied!';
+            setTimeout(() => { copyBtn.textContent = original; }, 2000);
+          });
+        }
+      });
+
+      function capitalize(str) {
+        if (!str) return "";
+        return str.charAt(0).toUpperCase() + str.slice(1);
+      }
+
+      // Auto-focus input
+      urlInput.focus();
+    </script>
+  </body>
+</html>
