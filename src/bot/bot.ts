@@ -7,6 +7,7 @@ import { message } from "telegraf/filters";
 import { getVideoInfo, downloadVideo } from "../engine/grabh";
 import { downloadQueue } from "../engine/queue";
 import { InputFile } from "telegraf/types";
+import { saveTelegramUser, incrementTelegramDownloads } from "../firebase-admin";
 
 const DOWNLOAD_DIR = process.env.DOWNLOAD_DIR || "./downloads";
 const URL_REGEX = /https?:\/\/[^\s]+/gi;
@@ -105,6 +106,9 @@ export function startBot(token: string) {
     }
 
     const url = urls[0];
+
+    // Save Telegram user to Firestore
+    saveTelegramUser(ctx.message.from).catch(() => {});
 
     // Show "searching" status
     const statusMsg = await ctx.reply("🔍 _Searching for your video…_", {
@@ -209,6 +213,9 @@ export function startBot(token: string) {
           parse_mode: "Markdown",
         }
       );
+
+      // Track download in Firestore
+      incrementTelegramDownloads(ctx.message.from.id).catch(() => {});
 
       // Delete progress message after video is sent
       await ctx.telegram
