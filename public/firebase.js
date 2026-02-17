@@ -8,7 +8,7 @@ let firebaseReady = false;
 let firebaseReadyPromise;
 
 // Initialize Firebase from server config
-firebaseReadyPromise = fetch('/api/config')
+firebaseReadyPromise = fetch(`${API_BASE}/api/config`)
   .then(r => r.json())
   .then(config => {
     if (!config.apiKey || config.apiKey === '' || config.apiKey === 'YOUR_API_KEY') {
