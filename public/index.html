@@ -38,7 +38,7 @@
           <h1 class="hero__title">grabh</h1>
         </div>
         <p class="hero__subtitle">Paste a link. Get the video.</p>
-        <p class="download-counter" id="downloadCounter"><span id="counterNumber">0</span> videos grabbed</p>
+        <p class="download-counter" id="downloadCounter" style="visibility: hidden;"><span id="counterNumber">0</span> videos grabbed</p>
       </section>
 
       <!-- ── Search ── -->
@@ -226,11 +226,15 @@
       // ── Fetch server config + download count ──
       const maxSizeLabel = document.getElementById('maxSizeLabel');
       const counterNumber = document.getElementById('counterNumber');
+      const downloadCounter = document.getElementById('downloadCounter');
       fetch('/api/status')
         .then(r => r.json())
         .then(data => {
           if (data.maxFileSizeMB) maxSizeLabel.textContent = data.maxFileSizeMB;
-          if (data.totalDownloads !== undefined) counterNumber.textContent = data.totalDownloads.toLocaleString();
+          if (data.totalDownloads !== undefined) {
+            counterNumber.textContent = data.totalDownloads.toLocaleString();
+            downloadCounter.style.visibility = 'visible';
+          }
         })
         .catch(() => {});
 

@@ -37,6 +37,15 @@ function initFirebaseAdmin() {
 
     db = admin.firestore();
     console.log("[Firebase Admin] Connected to Firestore");
+
+    // Seed global stats doc if missing
+    const statsRef = db.collection("stats").doc("global");
+    statsRef.get().then((doc) => {
+      if (!doc.exists) {
+        statsRef.set({ totalDownloads: 0 });
+        console.log("[Firebase Admin] Created stats/global doc");
+      }
+    }).catch(() => {});
   } catch (err: any) {
     console.warn("[Firebase Admin] Init failed:", err.message);
   }
