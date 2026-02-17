@@ -4,5 +4,6 @@ downloads/
 logs/
 .env
 cookies.txt
+.download-count
 *.log
 .DS_Store

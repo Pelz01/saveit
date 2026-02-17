@@ -6,10 +6,25 @@ import { getVideoInfo, downloadVideo } from "../engine/grabh";
 import { downloadQueue } from "../engine/queue";
 import { getMimeType } from "./mime";
 import { join } from "path";
+import { existsSync, readFileSync, writeFileSync } from "fs";
 
 const PUBLIC_DIR = join(import.meta.dir, "../../public");
 const DOWNLOAD_DIR = process.env.DOWNLOAD_DIR || "./downloads";
 const MAX_FILE_SIZE_MB = parseInt(process.env.MAX_FILE_SIZE_MB || "200", 10);
+
+// ── Simple persistent download counter ──
+const COUNTER_FILE = join(import.meta.dir, "../../.download-count");
+let totalDownloads = 0;
+try {
+  if (existsSync(COUNTER_FILE)) {
+    totalDownloads = parseInt(readFileSync(COUNTER_FILE, "utf-8").trim(), 10) || 0;
+  }
+} catch {}
+
+function incrementDownloads() {
+  totalDownloads++;
+  try { writeFileSync(COUNTER_FILE, String(totalDownloads)); } catch {}
+}
 
 export function startServer(port: number) {
   const server = Bun.serve({
@@ -37,6 +52,7 @@ export function startServer(port: number) {
           {
             maxFileSizeMB: MAX_FILE_SIZE_MB,
             queue: downloadQueue.status,
+            totalDownloads,
           },
           { headers: corsHeaders }
         );
@@ -141,6 +157,15 @@ export function startServer(port: number) {
             { status: 500, headers: corsHeaders }
           );
         }
+      }
+
+      // ── API: Increment download count ──
+      if (path === "/api/download/count" && req.method === "POST") {
+        incrementDownloads();
+        return Response.json(
+          { totalDownloads },
+          { headers: corsHeaders }
+        );
       }
 
       // ── Static Files ──

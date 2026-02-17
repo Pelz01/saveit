@@ -38,6 +38,7 @@
           <h1 class="hero__title">grabh</h1>
         </div>
         <p class="hero__subtitle">Paste a link. Get the video.</p>
+        <p class="download-counter" id="downloadCounter"><span id="counterNumber">0</span> videos grabbed</p>
       </section>
 
       <!-- ── Search ── -->
@@ -118,6 +119,14 @@
             <p class="queue-status" id="queueStatus" style="display: none;"></p>
           </div>
         </article>
+      </section>
+
+      <!-- ── Success State ── -->
+      <section class="success" id="success">
+        <div class="success__icon">✅</div>
+        <h3 class="success__title">Download Complete!</h3>
+        <p class="success__text">Your video has been saved to your device.</p>
+        <button class="success__btn" id="grabAnotherBtn" type="button">⬇ Grab Another Video</button>
       </section>
 
       <!-- ── Supported Platforms ── -->
@@ -202,12 +211,14 @@
       let currentVideoUrl = "";
       let pendingDownload = null; // stores download fn to run after auth
 
-      // ── Fetch server config ──
+      // ── Fetch server config + download count ──
       const maxSizeLabel = document.getElementById('maxSizeLabel');
+      const counterNumber = document.getElementById('counterNumber');
       fetch('/api/status')
         .then(r => r.json())
         .then(data => {
           if (data.maxFileSizeMB) maxSizeLabel.textContent = data.maxFileSizeMB;
+          if (data.totalDownloads !== undefined) counterNumber.textContent = data.totalDownloads.toLocaleString();
         })
         .catch(() => {});
 
@@ -267,15 +278,27 @@
         }
       });
 
+      const success = document.getElementById('success');
+      const grabAnotherBtn = document.getElementById('grabAnotherBtn');
+
       function showState(state) {
         loading.classList.remove("is-visible");
         error.classList.remove("is-visible");
         result.classList.remove("is-visible");
+        success.classList.remove("is-visible");
 
         if (state === "loading") loading.classList.add("is-visible");
         if (state === "error") error.classList.add("is-visible");
         if (state === "result") result.classList.add("is-visible");
+        if (state === "success") success.classList.add("is-visible");
       }
+
+      // ── Grab Another ──
+      grabAnotherBtn.addEventListener('click', () => {
+        showState(null);
+        urlInput.value = '';
+        urlInput.focus();
+      });
 
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -436,11 +459,17 @@
           a.remove();
           URL.revokeObjectURL(a.href);
 
-          // Track in Firestore
+          // Track in Firestore + server counter
           incrementDownloadCount().catch(() => {});
+          fetch('/api/download/count', { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+              if (data.totalDownloads !== undefined) counterNumber.textContent = data.totalDownloads.toLocaleString();
+            })
+            .catch(() => {});
 
-          downloadBtnText.textContent = '✓ Downloaded!';
-          setTimeout(() => { downloadBtnText.textContent = '⬇ Download MP4'; }, 2500);
+          // Show success state
+          showState('success');
         } catch (err) {
           downloadBtnText.textContent = '✕ Failed - Try Again';
           setTimeout(() => { downloadBtnText.textContent = '⬇ Download MP4'; }, 3000);
@@ -449,6 +478,7 @@
           queueStatus.style.display = 'none';
           downloadBtn.disabled = false;
           downloadBtnSpinner.style.display = 'none';
+          downloadBtnText.textContent = '⬇ Download MP4';
         }
       }
 
