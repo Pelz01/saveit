@@ -44,6 +44,7 @@ export interface VideoInfo {
   view_count: number;
   webpage_url: string;
   extractor: string;
+  filesize_approx: number | null;
   formats: VideoFormat[];
   best_url: string | null;
 }
@@ -99,6 +100,7 @@ export async function getVideoInfo(url: string): Promise<VideoInfo> {
     view_count: raw.view_count || 0,
     webpage_url: raw.webpage_url || url,
     extractor: raw.extractor || "unknown",
+    filesize_approx: raw.filesize_approx || raw.filesize || bestFormat?.filesize || null,
     formats,
     best_url: bestFormat?.url || null,
   };

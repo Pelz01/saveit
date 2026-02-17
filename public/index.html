@@ -100,6 +100,10 @@
                 <span class="result__meta-icon">📺</span>
                 <span id="resultPlatform"></span>
               </span>
+              <span class="result__meta-item" id="resultSizeWrap" style="display: none;">
+                <span class="result__meta-icon">📦</span>
+                <span id="resultFilesize"></span>
+              </span>
             </div>
             <div class="result__actions">
               <button class="result__download-btn" id="downloadBtn" type="button">
@@ -341,6 +345,16 @@
           resultUploader.textContent = info.uploader;
           resultPlatform.textContent = capitalize(info.extractor);
 
+          // Show file size if available
+          const sizeWrap = document.getElementById('resultSizeWrap');
+          const sizeLabel = document.getElementById('resultFilesize');
+          if (info.filesize_approx) {
+            sizeLabel.textContent = formatBytes(info.filesize_approx);
+            sizeWrap.style.display = '';
+          } else {
+            sizeWrap.style.display = 'none';
+          }
+
           // Store download URL on the button
           downloadBtn.dataset.url = `/api/download?url=${encodeURIComponent(url)}`;
           downloadBtn.dataset.title = info.title || 'video';
@@ -464,6 +478,14 @@
       function capitalize(str) {
         if (!str) return "";
         return str.charAt(0).toUpperCase() + str.slice(1);
+      }
+
+      function formatBytes(bytes) {
+        if (!bytes || bytes === 0) return '';
+        const units = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(1024));
+        const size = (bytes / Math.pow(1024, i)).toFixed(i > 0 ? 1 : 0);
+        return `${size} ${units[i]}`;
       }
 
       // Auto-focus input
