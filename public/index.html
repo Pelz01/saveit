@@ -123,7 +123,13 @@
 
       <!-- ── Success State ── -->
       <section class="success" id="success">
-        <div class="success__icon">✅</div>
+        <div class="success__icon">
+          <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+            <circle cx="28" cy="28" r="28" fill="var(--accent)" opacity="0.12"/>
+            <circle cx="28" cy="28" r="20" fill="var(--accent)" opacity="0.2"/>
+            <path d="M22 28.5L26 32.5L34 24.5" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
         <h3 class="success__title">Download Complete!</h3>
         <p class="success__text">Your video has been saved to your device.</p>
         <button class="success__btn" id="grabAnotherBtn" type="button">⬇ Grab Another Video</button>
