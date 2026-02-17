@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y python3 python3-pip curl && \
     chmod a+rx /usr/local/bin/yt-dlp
 
 # Copy package files and install dependencies
-COPY package.json bun.lockb ./
+COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 
 # Copy the rest of the application
