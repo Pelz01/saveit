@@ -17,7 +17,7 @@ RUN bun install --frozen-lockfile
 COPY . .
 
 # Expose the API port
-EXPOSE 3000
+EXPOSE 3001
 
 # Start the application (both server and bot run from src/index.ts)
 CMD ["bun", "run", "src/index.ts"]

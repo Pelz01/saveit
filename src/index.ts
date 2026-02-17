@@ -6,7 +6,7 @@ import { startServer } from "./server/index";
 import { startBot } from "./bot/bot";
 
 // Load configuration
-const PORT = parseInt(process.env.PORT || "3000", 10);
+const PORT = parseInt(process.env.PORT || "3001", 10);
 const BOT_TOKEN = process.env.BOT_TOKEN || "";
 
 console.log(`
