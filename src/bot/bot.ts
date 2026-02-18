@@ -132,7 +132,7 @@ export function startBot(token: string) {
         undefined,
         `📹 *${info.title}*\n👤 ${info.uploader} • ⏱ ${info.duration_string}\n\n📥 Downloading…${queueMsg}\n${progressBar(0)}`,
         { parse_mode: "Markdown" }
-      );
+      ).catch(() => { });
 
       // Animate progress while download runs
       let downloadDone = false;
@@ -185,7 +185,7 @@ export function startBot(token: string) {
           undefined,
           `⚠️ *File too large for Telegram* (${(fileSize / 1024 / 1024).toFixed(1)}MB)\n\n📹 _${info.title}_\n⏱ ${info.duration_string}\n\n_Telegram bots can only send files up to 50MB._`,
           { parse_mode: "Markdown" }
-        );
+        ).catch(() => { });
         // Clean up
         try {
           (await import("fs/promises")).unlink(filePath);
@@ -211,7 +211,10 @@ export function startBot(token: string) {
           caption: `📹 *${info.title}*\n👤 ${info.uploader}\n⏱ ${info.duration_string}`,
           parse_mode: "Markdown",
         }
-      );
+      ).catch((err) => {
+        console.error("[Bot Reply Error]", err);
+        ctx.reply("❌ Error sending video. It might be too large or invalid format.").catch(() => { });
+      });
 
 
 
@@ -227,6 +230,10 @@ export function startBot(token: string) {
     } catch (err: any) {
       console.error("[Bot Error]", err.message);
 
+      // Clear interval if error occurred during download
+      // @ts-ignore
+      if (typeof progressInterval !== 'undefined') clearInterval(progressInterval);
+
       await ctx.telegram
         .editMessageText(
           ctx.chat.id,
@@ -238,7 +245,7 @@ export function startBot(token: string) {
         .catch(() => {
           ctx.reply(`❌ *Couldn't grab that one.*\n\n_${err.message}_`, {
             parse_mode: "Markdown",
-          });
+          }).catch(() => { });
         });
     }
   });
