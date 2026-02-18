@@ -27,6 +27,8 @@ export function startServer(port: number) {
     const url = new URL(req.url || "/", `http://${req.headers.host}`);
     const path = url.pathname;
 
+    console.log(`[${req.method}] ${path}`); // Log every request
+
     // ── CORS headers ──
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",

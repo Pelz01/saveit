@@ -40,8 +40,9 @@ body {
   background-color: var(--bg-raw);
   color: var(--text-main);
   font-family: var(--font-body);
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   background-image:
@@ -176,6 +177,28 @@ h1:hover {
 
 .search__button:active {
   transform: scale(0.98);
+}
+
+.search__clear {
+  background: transparent;
+  border: none;
+  color: #666;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0 10px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+  height: 100%;
+}
+
+.search__clear:hover {
+  color: #fff;
+}
+
+.search__clear.is-visible {
+  display: flex;
 }
 
 /* ── Result Card ── */
@@ -351,43 +374,100 @@ footer a:hover {
 }
 
 /* ── Mobile ── */
+/* ── Mobile ── */
 @media (max-width: 600px) {
   .app {
     padding: 16px;
+    display: block;
+    /* Remove grid centering to allow natural flow */
+    padding-top: 40px;
+    /* standard top padding */
+  }
+
+  /* Fix: Reduce vertical spacing */
+  .hero {
+    margin-bottom: 30px;
   }
 
   h1 {
     font-size: 18vw;
-    /* Scale seamlessly */
-    margin-bottom: 20px;
+    margin-bottom: 10px;
+    line-height: 0.9;
   }
 
   .hero__subtitle {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     margin-bottom: 10px;
   }
 
   .hero__explainer {
     font-size: 0.8rem;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
+    /* Reduced from 40px */
     padding: 0 10px;
   }
 
+  /* Fix: Stack Input & Button */
   .search__wrapper {
-    height: 56px;
+    height: auto;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .search__wrapper:focus-within {
+    box-shadow: none;
+    transform: none;
+  }
+
+  .search__form {
+    flex-direction: column;
+    gap: 12px;
   }
 
   .search__input {
+    width: 100%;
+    height: 56px;
+    background: var(--bg-raw);
+    border: 1px solid #333;
     font-size: 1rem;
     padding: 0 16px;
+    text-align: center;
+    /* Easier to read on mobile */
+  }
+
+  .search__input:focus {
+    border-color: #fff;
+  }
+
+  /* Adjust clear button position for stacked layout */
+  .search__clear {
+    position: absolute;
+    right: 12px;
+    top: 0;
+    height: 56px;
   }
 
   .search__button {
-    width: 90px;
-    font-size: 0.9rem;
+    width: 100%;
+    height: 56px;
+    border: 1px solid #fff;
+    /* Solid contrast border */
+    background: #fff;
+    color: #000;
+    font-size: 1rem;
+    margin: 0;
   }
 
   .result {
-    margin-top: 40px;
+    margin-top: 30px;
+  }
+
+  /* Fix: Footer not overlapping */
+  footer {
+    position: relative;
+    margin-top: 60px;
+    bottom: auto;
+    padding-bottom: 20px;
   }
 }

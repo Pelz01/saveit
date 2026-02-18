@@ -2,6 +2,24 @@ const $ = (id) => document.getElementById(id);
 const form = $('searchForm');
 const input = $('urlInput');
 const btn = $('searchBtn');
+const clearBtn = $('clearBtn');
+
+// Clear Button Logic
+const toggleClear = () => {
+    if (input.value.length > 0) {
+        clearBtn.classList.add('is-visible');
+    } else {
+        clearBtn.classList.remove('is-visible');
+    }
+};
+
+input.addEventListener('input', toggleClear);
+
+clearBtn.addEventListener('click', () => {
+    input.value = '';
+    input.focus();
+    toggleClear();
+});
 
 // State management
 const setState = (state) => {
