@@ -93,46 +93,28 @@ h1:hover {
   text-align: center;
 }
 
-/* ── Search Module ── */
+/* ── Search Module (Clean Industrial) ── */
 .search {
   width: 100%;
   max-width: 600px;
-  border: 1px solid var(--border);
-  background: var(--bg-raw);
+  background: transparent;
   position: relative;
-}
-
-.search::after {
-  content: "";
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  right: -4px;
-  bottom: -4px;
-  background: repeating-linear-gradient(45deg,
-      var(--border),
-      var(--border) 1px,
-      transparent 1px,
-      transparent 6px);
-  z-index: -1;
-  transition: transform 0.2s;
-}
-
-.search:focus-within {
-  border-color: var(--border-active);
-}
-
-.search:focus-within::after {
-  transform: translate(4px, 4px);
-  background: var(--accent);
+  z-index: 2;
 }
 
 .search__wrapper {
   display: flex;
-  height: 60px;
-  background: #0a0a0a;
-  /* Slight separation from bg */
+  height: 64px;
+  background: var(--bg-raw);
   border: 1px solid #333;
+  transition: all 0.2s cubic-bezier(0.19, 1, 0.22, 1);
+  position: relative;
+}
+
+.search__wrapper:focus-within {
+  border-color: #fff;
+  transform: scale(1.01);
+  box-shadow: 0 0 0 1px #fff;
 }
 
 .search__input {
@@ -140,45 +122,50 @@ h1:hover {
   background: transparent;
   border: none;
   font-family: var(--font-body);
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: #fff;
-  /* Max contrast */
-  padding: 0 20px;
+  padding: 0 24px;
   outline: none;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
+  font-weight: 500;
 }
 
 .search__input::placeholder {
+  color: #444;
+  transition: color 0.2s;
+}
+
+.search__input:focus::placeholder {
   color: #666;
-  /* Visible but distinct */
-}
-
-.search__input::placeholder {
-  color: #555;
-  /* Higher contrast */
 }
 
 .search__button {
-  width: 100px;
-  background: var(--text-main);
-  color: var(--bg-raw);
+  width: 120px;
+  background: #fff;
+  color: #000;
   border: none;
+  border-left: 1px solid #000;
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 800;
   font-size: 1rem;
   text-transform: uppercase;
   cursor: pointer;
-  transition: background 0.2s;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+  margin: 4px;
+  /* inset look */
+  height: calc(100% - 8px);
 }
 
 .search__button:hover {
   background: var(--accent);
   color: #fff;
+  border-left-color: var(--accent);
 }
 
 .search__button:active {
-  transform: translateY(2px);
+  transform: scale(0.98);
 }
 
 /* ── Result Card ── */
