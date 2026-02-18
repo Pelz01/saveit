@@ -205,4 +205,3 @@ export function startServer(port: number, webhookCallback?: (req: any, res: any)
     }
   });
 }
-```
