@@ -130,6 +130,9 @@ h1:hover {
 .search__wrapper {
   display: flex;
   height: 60px;
+  background: #0a0a0a;
+  /* Slight separation from bg */
+  border: 1px solid #333;
 }
 
 .search__input {
@@ -138,11 +141,17 @@ h1:hover {
   border: none;
   font-family: var(--font-body);
   font-size: 1.2rem;
-  color: var(--text-main);
+  color: #fff;
+  /* Max contrast */
   padding: 0 20px;
   outline: none;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+.search__input::placeholder {
+  color: #666;
+  /* Visible but distinct */
 }
 
 .search__input::placeholder {
