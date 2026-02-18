@@ -1,7 +1,7 @@
 {
   "name": "save",
   "version": "1.0.0",
-  "description": "GRABH — The Minimalist Video Downloader",
+  "description": "SAVE — The Minimalist Video Downloader",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",

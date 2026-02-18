@@ -1,8 +1,8 @@
 // ──────────────────────────────────────────
-// GRABH API Server — Bun.serve
+// SAVE API Server — Node.js
 // ──────────────────────────────────────────
 
-import { getVideoInfo, downloadVideo } from "../engine/grabh";
+import { getVideoInfo, downloadVideo } from "../engine/save";
 import { downloadQueue } from "../engine/queue";
 import { getMimeType } from "./mime";
 import { join } from "path";
@@ -64,7 +64,7 @@ export function startServer(port: number) {
     }
 
     // ── API: Get video info ──
-    if (path === "/api/grabh" && req.method === "POST") {
+    if (path === "/api/save" && req.method === "POST") {
       let body = "";
       req.on("data", chunk => body += chunk);
       req.on("end", async () => {
@@ -174,7 +174,7 @@ export function startServer(port: number) {
   });
 
   server.listen(port, () => {
-    console.log(`\n  ✨ GRABH Server running at http://localhost:${port}`);
+    console.log(`\n  ✨ SAVE Server running at http://localhost:${port}`);
     console.log(`  📦 Max file size: ${MAX_FILE_SIZE_MB}MB | Queue: ${downloadQueue.status.maxConcurrent} concurrent\n`);
   });
 }

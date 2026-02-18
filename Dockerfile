@@ -1,23 +1,37 @@
-# Use the official Bun image
-FROM oven/bun:latest
+# Base Node.js image
+FROM node:18-slim
 
-# Set working directory
-WORKDIR /app
+# Install system dependencies (Python + ffmpeg for yt-dlp)
+RUN apt-get update && \
+    apt-get install -y python3 python3-pip ffmpeg curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install system dependencies for yt-dlp (Python is required)
-RUN apt-get update && apt-get install -y python3 python3-pip curl && \
-    curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && \
+# Install yt-dlp
+RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && \
     chmod a+rx /usr/local/bin/yt-dlp
 
-# Copy package files and install dependencies
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
+WORKDIR /app
 
-# Copy the rest of the application
+# Copy package files
+COPY package*.json ./
+
+# Install deps
+RUN npm install
+
+# Copy source
 COPY . .
 
-# Expose the API port
+# Build (if necessary, currently using tsx directly)
+# RUN npm run build
+
+# Env vars
+ENV PORT=3001
+ENV DOWNLOAD_DIR=/tmp/downloads
+ENV MAX_FILE_SIZE_MB=200
+
+# Expose port
 EXPOSE 3001
 
-# Start the application (both server and bot run from src/index.ts)
-CMD ["bun", "run", "src/index.ts"]
+# Start
+CMD ["npm", "start"]

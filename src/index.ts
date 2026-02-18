@@ -1,5 +1,5 @@
 // ──────────────────────────────────────────
-// GRABH — Main Entry Point
+// SAVE — Main Entry Point
 // ──────────────────────────────────────────
 
 import { startServer } from "./server/index";
@@ -11,7 +11,7 @@ const BOT_TOKEN = process.env.BOT_TOKEN || "";
 
 console.log(`
   ╔═══════════════════════════════════════╗
-  ║           ✨  G R A B H  ✨           ║
+  ║           ✨  S A V E  ✨             ║
   ║      The Minimalist Downloader        ║
   ╚═══════════════════════════════════════╝
 `);

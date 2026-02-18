@@ -67,7 +67,7 @@ form.addEventListener('submit', async (e) => {
 
     try {
         // Step 1: Get Info
-        const res = await fetch('/api/grabh', {
+        const res = await fetch('/api/save', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ url })
