@@ -22,12 +22,20 @@ const PUBLIC_DIR = join(__dirname, "../../public");
 const DOWNLOAD_DIR = process.env.DOWNLOAD_DIR || "./downloads";
 const MAX_FILE_SIZE_MB = parseInt(process.env.MAX_FILE_SIZE_MB || "200", 10);
 
-export function startServer(port: number) {
+// ── Server Start ──
+export function startServer(port: number, webhookCallback?: (req: any, res: any) => void, webhookPath?: string) {
   const server = createServer(async (req, res) => {
     const url = new URL(req.url || "/", `http://${req.headers.host}`);
     const path = url.pathname;
 
-    console.log(`[${req.method}] ${path}`); // Log every request
+    // ── Telegram Webhook Routing ──
+    if (webhookCallback && webhookPath && path === webhookPath && req.method === "POST") {
+      // console.log(`[Webhook] Update received at ${path}`);
+      webhookCallback(req, res);
+      return;
+    }
+
+    console.log(`[${req.method}] ${path}`); // Log regular requests
 
     // ── CORS headers ──
     const corsHeaders = {
