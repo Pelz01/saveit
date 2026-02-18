@@ -22,11 +22,40 @@ clearBtn.addEventListener('click', () => {
 });
 
 // State management
+// State management
+let loadingInterval;
+const loadingMessages = [
+    'RESOLVING HOST...',
+    'HANDSHAKE...',
+    'EXTRACTING_METADATA...',
+    'PARSING_MANIFEST...',
+    'BUFFERING...'
+];
+
+const startLoadingSequence = () => {
+    const textEl = $('loadingText');
+    let i = 0;
+    textEl.textContent = loadingMessages[0];
+
+    loadingInterval = setInterval(() => {
+        i = (i + 1) % loadingMessages.length;
+        textEl.textContent = loadingMessages[i];
+    }, 800); // Change text every 800ms
+};
+
 const setState = (state) => {
     ['loading', 'error', 'result'].forEach(id => $(id).classList.remove('is-visible'));
     if (state) $(state).classList.add('is-visible');
+
     btn.disabled = state === 'loading';
-    btn.textContent = state === 'loading' ? '...' : 'Get';
+    btn.textContent = state === 'loading' ? 'PROCESSING' : 'Get';
+
+    // Handle Loading Sequence
+    if (state === 'loading') {
+        startLoadingSequence();
+    } else {
+        clearInterval(loadingInterval);
+    }
 };
 
 form.addEventListener('submit', async (e) => {
