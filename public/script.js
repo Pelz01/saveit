@@ -1,0 +1,66 @@
+const $ = (id) => document.getElementById(id);
+const form = $('searchForm');
+const input = $('urlInput');
+const btn = $('searchBtn');
+
+// State management
+const setState = (state) => {
+    ['loading', 'error', 'result'].forEach(id => $(id).classList.remove('is-visible'));
+    if (state) $(state).classList.add('is-visible');
+    btn.disabled = state === 'loading';
+    btn.textContent = state === 'loading' ? '...' : 'Get';
+};
+
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const url = input.value.trim();
+    if (!url) return;
+
+    setState('loading');
+
+    try {
+        // Step 1: Get Info
+        const res = await fetch('/api/grabh', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url })
+        });
+
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+
+        const info = data.data;
+
+        // Populate UI
+        $('thumb').src = info.thumbnail;
+        $('title').textContent = info.title.replace(/[^\w\s]/gi, ''); // Clean title
+        $('duration').textContent = info.duration_string;
+        $('source').textContent = info.extractor.toUpperCase();
+
+        // Setup Download Button
+        const safeTitle = info.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        const dlUrl = `/api/download?url=${encodeURIComponent(url)}&title=${safeTitle}`;
+
+        const dlBtn = $('downloadBtn');
+        dlBtn.href = dlUrl;
+        dlBtn.setAttribute('download', `${safeTitle}.mp4`); // Handle Direct Download Click to avoid navigation
+
+        dlBtn.onclick = (e) => {
+            // Optional: You could allow default behavior or handle blob download here
+            // implementing a simple direct download for now
+        };
+
+        setState('result');
+    } catch (err) {
+        $('errorMsg').textContent = err.message || 'Failed to fetch video.';
+        setState('error');
+    }
+});
+
+// Copy Link functionality
+$('copyBtn').addEventListener('click', () => {
+    navigator.clipboard.writeText(input.value);
+    const original = $('copyBtn').textContent;
+    $('copyBtn').textContent = 'Copied!';
+    setTimeout(() => $('copyBtn').textContent = original, 2000);
+});
