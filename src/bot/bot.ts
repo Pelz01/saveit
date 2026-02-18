@@ -19,26 +19,36 @@ function escapeMd(text: string): string {
   return text.replace(/[_*[\]()~`>#+\-=|{}.!]/g, "\\$&");
 }
 
+/* 
+  Progress bar helper
+  Generates a visual progress bar string
+*/
+function progressBar(percent: number): string {
+  const filled = Math.round(percent / 10);
+  const empty = 10 - filled;
+  return "▓".repeat(filled) + "░".repeat(empty) + ` ${percent}%`;
+}
+
 export function startBot(token: string) {
   const bot = new Telegraf(token);
 
   // ── Set bot menu commands ──
   bot.telegram.setMyCommands([
-    { command: "start", description: "👋 START PROTOCOL" },
-    { command: "help", description: "❓ PROTOCOL INFO" },
-    { command: "supported", description: "📺 TARGET LIST" },
-    { command: "status", description: "📊 SYSTEM LOAD" },
+    { command: "start", description: "👋 Start here" },
+    { command: "help", description: "❓ How to use" },
+    { command: "supported", description: "📺 Supported sites" },
+    { command: "status", description: "📊 Bot status" },
   ]);
 
   // ── /start command ──
   bot.start((ctx) => {
     ctx.reply(
-      `🔮 *SAVE SYSTEM ONLINE*\n\n` +
-      `Send a link\\. I will acquire the media\\.\n\n` +
-      `_Compatible with YouTube, Instagram, TikTok, X, and others\\._\n\n` +
-      `cmds:\n` +
-      `/help — Protocol info\n` +
-      `/status — System load`,
+      `✨ *Welcome to Save Bot* ✨\n\n` +
+      `Just send me a link, and I'll download the video for you\\! 🎬\n\n` +
+      `_Works with YouTube, Instagram, TikTok, X, and more\\._\n\n` +
+      `👇 *Try it out:*\n` +
+      `/help — See how it works\n` +
+      `/status — Check server health`,
       { parse_mode: "MarkdownV2" }
     );
   });
@@ -46,14 +56,14 @@ export function startBot(token: string) {
   // ── /help command ──
   bot.help((ctx) => {
     ctx.reply(
-      `📋 *PROTOCOL*\n\n` +
-      `1\\. Transmit URL\n` +
-      `2\\. Processing\\.\\.\\.\n` +
-      `3\\. Receive File\n\n` +
-      `*PARAMETERS:*\n` +
-      `• Max Size: 50MB\n` +
-      `• Queue: Active\n\n` +
-      `_Execute\\._`,
+      `❓ *How to use*\n\n` +
+      `1\\. Paste a video link\n` +
+      `2\\. Wait a moment for the magic 🪄\n` +
+      `3\\. Get your video\\! 📥\n\n` +
+      `*Good to know:*\n` +
+      `• Max file size: 50MB\n` +
+      `• I can handle most social media sites\\.\n\n` +
+      `_Ready when you are\\!_`,
       { parse_mode: "MarkdownV2" }
     );
   });
@@ -61,14 +71,14 @@ export function startBot(token: string) {
   // ── /supported command ──
   bot.command("supported", (ctx) => {
     ctx.reply(
-      `📡 *TARGETS*\n\n` +
-      `\\[\\+\\] YouTube\n` +
-      `\\[\\+\\] Instagram\n` +
-      `\\[\\+\\] TikTok\n` +
-      `\\[\\+\\] X \\(Twitter\\)\n` +
-      `\\[\\+\\] Reddit\n` +
-      `\\[\\+\\] Threads\n\n` +
-      `_Universal extractor active\\._`,
+      `📺 *Supported Platforms*\n\n` +
+      `✅ YouTube\n` +
+      `✅ Instagram\n` +
+      `✅ TikTok\n` +
+      `✅ X \\(Twitter\\)\n` +
+      `✅ Reddit\n` +
+      `✅ Threads\n\n` +
+      `_And many others\\! Give it a try\\._`,
       { parse_mode: "MarkdownV2" }
     );
   });
@@ -77,11 +87,11 @@ export function startBot(token: string) {
   bot.command("status", async (ctx) => {
     const q = downloadQueue.status;
     ctx.reply(
-      `⚙️ *SYSTEM STATUS*\n\n` +
-      `Processing: ${q.active}\n` +
-      `Pending: ${q.waiting}\n` +
-      `Capacity: ${q.maxConcurrent}\n\n` +
-      `_Online\\._`,
+      `📊 *System Status*\n\n` +
+      `🟢 Service: Online\n` +
+      `📥 Active Downloads: ${q.active}\n` +
+      `⏳ Queue: ${q.waiting}\n\n` +
+      `_Everything is running smoothly\\!_`,
       { parse_mode: "MarkdownV2" }
     );
   });
@@ -92,8 +102,9 @@ export function startBot(token: string) {
     const urls = text.match(URL_REGEX);
 
     if (!urls || urls.length === 0) {
+      // Friendly nudge if no link found
       await ctx.reply(
-        `⚡ *NO LINK DETECTED*\n\nTransmit a valid URL to begin operation\\.`,
+        `🤔 *I didn't see a link there\\.*\n\nPlease send a valid video URL so I can save it for you\\!`,
         { parse_mode: "MarkdownV2" }
       );
       return;
@@ -102,7 +113,7 @@ export function startBot(token: string) {
     const url = urls[0];
 
     // Show "searching" status
-    const statusMsg = await ctx.reply("📡 _RESOLVING RESOURCE\\.\\.\\._", {
+    const statusMsg = await ctx.reply("🔍 _Looking for your video\\.\\.\\._", {
       parse_mode: "MarkdownV2",
     });
 
@@ -114,7 +125,7 @@ export function startBot(token: string) {
       const queueStatus = downloadQueue.status;
       const queueMsg =
         queueStatus.waiting > 0
-          ? `\n⏳ _QUEUE POSITION: ${queueStatus.waiting + 1}_`
+          ? `\n⏳ _You are #${queueStatus.waiting + 1} in the queue_`
           : "";
 
       // Show initial download status with video details
@@ -122,9 +133,9 @@ export function startBot(token: string) {
         ctx.chat.id,
         statusMsg.message_id,
         undefined,
-        `📼 *${escapeMd(info.title)}*\n` +
+        `🎬 *${escapeMd(info.title)}*\n` +
         `👤 ${escapeMd(info.uploader)} • ⏱ ${escapeMd(info.duration_string)}\n\n` +
-        `⬇️ ACQUIRING\\.\\.\\.${queueMsg}\n${progressBar(0)}`,
+        `⬇️ Downloading\\.\\.\\.${queueMsg}\n${progressBar(0)}`,
         { parse_mode: "MarkdownV2" }
       ).catch(() => { });
 
@@ -147,9 +158,9 @@ export function startBot(token: string) {
             ctx.chat.id,
             statusMsg.message_id,
             undefined,
-            `📼 *${escapeMd(info.title)}*\n` +
+            `🎬 *${escapeMd(info.title)}*\n` +
             `👤 ${escapeMd(info.uploader)} • ⏱ ${escapeMd(info.duration_string)}\n\n` +
-            `⬇️ ACQUIRING\\.\\.\\.\n${progressBar(currentPercent)}`,
+            `⬇️ Downloading\\.\\.\\.\n${progressBar(currentPercent)}`,
             { parse_mode: "MarkdownV2" }
           );
         } catch { }
@@ -172,10 +183,9 @@ export function startBot(token: string) {
           ctx.chat.id,
           statusMsg.message_id,
           undefined,
-          `⚠️ *FILE SIZE EXCEEDED* \\(${(fileSize / 1024 / 1024).toFixed(1)}MB\\)\n\n` +
-          `📼 _${escapeMd(info.title)}_\n` +
-          `⏱ ${escapeMd(info.duration_string)}\n\n` +
-          `_System cannot transmit files over 50MB via Telegram protocol\\._`,
+          `⚠️ *File too large* \\(${(fileSize / 1024 / 1024).toFixed(1)}MB\\)\n\n` +
+          `🎬 _${escapeMd(info.title)}_\n` +
+          `Unfortunately, Telegram won't let me send files larger than 50MB\\. 😔`,
           { parse_mode: "MarkdownV2" }
         ).catch(() => { });
         try { (await import("fs/promises")).unlink(filePath); } catch { }
@@ -188,10 +198,10 @@ export function startBot(token: string) {
           ctx.chat.id,
           statusMsg.message_id,
           undefined,
-          `📼 *${escapeMd(info.title)}*\n` +
+          `🎬 *${escapeMd(info.title)}*\n` +
           `👤 ${escapeMd(info.uploader)} • ⏱ ${escapeMd(info.duration_string)}\n\n` +
-          `✅ ACQUISITION COMPLETE\n${progressBar(100)}\n\n` +
-          `_Transmitting\\.\\.\\._`,
+          `✅ Download finished\\!\n${progressBar(100)}\n\n` +
+          `_Sending it to you now\\.\\.\\._`,
           { parse_mode: "MarkdownV2" }
         )
         .catch(() => { });
@@ -200,14 +210,14 @@ export function startBot(token: string) {
       await ctx.replyWithVideo(
         { source: filePath } as InputFile,
         {
-          caption: `📼 *${escapeMd(info.title)}*\n` +
+          caption: `🎬 *${escapeMd(info.title)}*\n` +
             `👤 ${escapeMd(info.uploader)}\n` +
             `⏱ ${escapeMd(info.duration_string)}`,
           parse_mode: "MarkdownV2",
         }
       ).catch((err) => {
         console.error("[Bot Reply Error]", err);
-        ctx.reply("❌ TRANSMISSION ERROR\\. Format invalid or size limit reached\\.", { parse_mode: "MarkdownV2" }).catch(() => { });
+        ctx.reply("❌ Oops, I couldn't send that video\\. It might be an invalid format\\.", { parse_mode: "MarkdownV2" }).catch(() => { });
       });
 
       // Delete progress message
@@ -228,13 +238,13 @@ export function startBot(token: string) {
           ctx.chat.id,
           statusMsg.message_id,
           undefined,
-          `❌ *ACQUISITION FAILED*\n\n` +
-          `_${escapeMd(err.message || "Unknown system error")}_\n\n` +
-          `💡 _Verify URL or check /supported_`,
+          `❌ *Oops, something went wrong*\n\n` +
+          `_${escapeMd(err.message || "Unknown error")}_\n\n` +
+          `💡 _Please try again or check /supported sites\\._`,
           { parse_mode: "MarkdownV2" }
         )
         .catch(() => {
-          ctx.reply(`❌ ACQUISITION FAILED\n\n${escapeMd(err.message)}`, { parse_mode: "MarkdownV2" }).catch(() => { });
+          ctx.reply(`❌ Oops, failed to download\\.\n\n${escapeMd(err.message)}`, { parse_mode: "MarkdownV2" }).catch(() => { });
         });
     }
   });
@@ -244,7 +254,7 @@ export function startBot(token: string) {
     dropPendingUpdates: true,
   });
 
-  console.log("  🤖 SAVE SYSTEM is live!\n");
+  console.log("  🤖 SAVE Bot (Consumer Mode) is live!\n");
 
   // Graceful shutdown
   process.on("SIGINT", () => bot.stop("SIGINT"));
