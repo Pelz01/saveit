@@ -185,5 +185,24 @@ export function startServer(port: number, webhookCallback?: (req: any, res: any)
   server.listen(port, () => {
     console.log(`\n  ✨ SAVE Server running at http://localhost:${port}`);
     console.log(`  📦 Max file size: ${MAX_FILE_SIZE_MB}MB | Queue: ${downloadQueue.status.maxConcurrent} concurrent\n`);
+
+    // ── Keep-Alive Ping (Prevent Sleep) ──
+    const pingUrl = process.env.RENDER_EXTERNAL_URL;
+    if (pingUrl) {
+      console.log(`  ⏰ Keep-Alive active: Pinging ${pingUrl} every 14m`);
+      setInterval(() => {
+        import("http").then(http => {
+          import("https").then(https => {
+            const client = pingUrl.startsWith("https") ? https : http;
+            client.get(pingUrl, (res) => {
+              // console.log(`[Keep-Alive] Ping status: ${res.statusCode}`);
+            }).on("error", (err) => {
+              console.error(`[Keep-Alive] Ping failed: ${err.message}`);
+            });
+          });
+        });
+      }, 14 * 60 * 1000); // 14 minutes
+    }
   });
 }
+```

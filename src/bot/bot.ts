@@ -29,7 +29,7 @@ function progressBar(percent: number): string {
   return "▓".repeat(filled) + "░".repeat(empty) + ` ${percent}%`;
 }
 
-export function startBot(token: string) {
+export async function startBot(token: string) {
   const bot = new Telegraf(token);
 
   // ── Set bot menu commands ──
@@ -249,16 +249,31 @@ export function startBot(token: string) {
     }
   });
 
-  // ── Launch bot ──
-  bot.launch({
-    dropPendingUpdates: true,
-  });
+  // ── Deployment Logic: Polling vs Webhook ──
+  const domain = process.env.RENDER_EXTERNAL_URL; // e.g. https://my-app.onrender.com
+  let hookPath = "";
 
-  console.log("  🤖 SAVE Bot (Consumer Mode) is live!\n");
+  if (domain) {
+    // 🚀 Production: Use Webhook
+    hookPath = `/telegraf/${bot.secretPathComponent()}`;
+    const webhookUrl = `${domain}${hookPath}`;
+
+    console.log(`  🚀 Webhook Mode Active`);
+    console.log(`  🔗 Hook URL: ${webhookUrl}`);
+
+    // Set Telegram webhook (must happen before server starts listening)
+    await bot.telegram.setWebhook(webhookUrl);
+  } else {
+    // 💻 Development: Use Polling
+    console.log("  🔄 Polling Mode Active");
+    // Clear any old webhooks first to ensure polling works
+    await bot.telegram.deleteWebhook();
+    bot.launch({ dropPendingUpdates: true });
+  }
 
   // Graceful shutdown
-  process.on("SIGINT", () => bot.stop("SIGINT"));
-  process.on("SIGTERM", () => bot.stop("SIGTERM"));
+  process.once("SIGINT", () => bot.stop("SIGINT"));
+  process.once("SIGTERM", () => bot.stop("SIGTERM"));
 
-  return bot;
+  return { bot, hookPath };
 }
