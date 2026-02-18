@@ -80,8 +80,9 @@ export function startServer(port: number) {
           const info = await getVideoInfo(videoUrl);
           sendJson({ success: true, data: info, maxFileSizeMB: MAX_FILE_SIZE_MB });
         } catch (err: any) {
-          console.error("[API Error]", err.message);
-          sendError(err.message || "Failed to fetch video info");
+          console.error("[API Error]", err);
+          // Send detailed error for debugging
+          sendError(`Failed to fetch video info: ${err.message}`, 500);
         }
       });
       return;
