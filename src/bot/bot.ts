@@ -33,13 +33,12 @@ export function startBot(token: string) {
   // ── /start command ──
   bot.start((ctx) => {
     ctx.reply(
-      `👋 *Welcome to Grabh\\!*\n\n` +
-      `Paste any video link and I'll grab it for you\\.\n\n` +
-      `_Supports YouTube, Instagram, TikTok, Twitter/X, and 1000\\+ sites\\._\n\n` +
-      `📋 *Commands:*\n` +
-      `/help — How to use\n` +
-      `/supported — See all platforms\n` +
-      `/status — Queue \\& server info`,
+      `🔮 *SAVE SYSTEM ONLINE*\n\n` +
+      `Send a link. I will acquire the media.\n\n` +
+      `_Compatible with YouTube, Instagram, TikTok, X, and others._\n\n` +
+      `cmds:\n` +
+      `/help — Protocol info\n` +
+      `/status — System load`,
       { parse_mode: "MarkdownV2" }
     );
   });
@@ -47,14 +46,14 @@ export function startBot(token: string) {
   // ── /help command ──
   bot.help((ctx) => {
     ctx.reply(
-      `🎬 *How to use Grabh*\n\n` +
-      `1\\. Send me a video link\n` +
-      `2\\. I'll find the video info\n` +
-      `3\\. Download \\& send the MP4 right here\n\n` +
-      `*Limits:*\n` +
-      `• Max file size: 50MB \\(Telegram limit\\)\n` +
-      `• Concurrent downloads are queued\n\n` +
-      `💡 _Just paste \\& go\\!_`,
+      `📋 *PROTOCOL*\n\n` +
+      `1\\. Transmit URL\n` +
+      `2\\. Processing\\.\\.\\.\n` +
+      `3\\. Receive File\n\n` +
+      `*PARAMETERS:*\n` +
+      `• Max Size: 50MB\n` +
+      `• Queue: Active\n\n` +
+      `_Execute._`,
       { parse_mode: "MarkdownV2" }
     );
   });
@@ -62,19 +61,14 @@ export function startBot(token: string) {
   // ── /supported command ──
   bot.command("supported", (ctx) => {
     ctx.reply(
-      `📺 *Supported Platforms*\n\n` +
-      `✅ YouTube\n` +
-      `✅ Instagram \\(Reels, Stories\\)\n` +
-      `✅ TikTok\n` +
-      `✅ Twitter / X\n` +
-      `✅ Reddit\n` +
-      `✅ Facebook\n` +
-      `✅ Vimeo\n` +
-      `✅ Dailymotion\n` +
-      `✅ Twitch Clips\n` +
-      `✅ Pinterest\n` +
-      `✅ And 1000\\+ more\\!\n\n` +
-      `_Just send any link and I'll try to grab it\\._`,
+      `📡 *TARGETS*\n\n` +
+      `[+] YouTube\n` +
+      `[+] Instagram\n` +
+      `[+] TikTok\n` +
+      `[+] X (Twitter)\n` +
+      `[+] Reddit\n` +
+      `[+] Threads\n\n` +
+      `_Universal extractor active._`,
       { parse_mode: "MarkdownV2" }
     );
   });
@@ -83,11 +77,11 @@ export function startBot(token: string) {
   bot.command("status", async (ctx) => {
     const q = downloadQueue.status;
     ctx.reply(
-      `📊 *Server Status*\n\n` +
-      `🔄 Active downloads: ${q.active}\n` +
-      `⏳ Queued: ${q.waiting}\n` +
-      `🔧 Max concurrent: ${q.maxConcurrent}\n\n` +
-      `_Server is running\\._`,
+      `⚙️ *SYSTEM STATUS*\n\n` +
+      `Processing: ${q.active}\n` +
+      `Pending: ${q.waiting}\n` +
+      `Capacity: ${q.maxConcurrent}\n\n` +
+      `_Online._`,
       { parse_mode: "MarkdownV2" }
     );
   });
@@ -99,7 +93,7 @@ export function startBot(token: string) {
 
     if (!urls || urls.length === 0) {
       await ctx.reply(
-        "🔗 Send me a video link from any supported platform.\n\n_Type /supported to see the full list._",
+        "⚡ *NO LINK DETECTED*\n\nTransmit a valid URL to begin operation.",
         { parse_mode: "Markdown" }
       );
       return;
