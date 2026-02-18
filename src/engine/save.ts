@@ -20,13 +20,21 @@ function baseArgs(): string[] {
   let binary = "yt-dlp";
 
   // Try to resolve local binary relative to this file
-  // Current file: src/engine/grabh.ts
+  // Current file: src/engine/save.ts
   // Target binary: bin/yt-dlp.exe (root/bin/yt-dlp.exe)
   const localBin = resolve(__dirname, "../../bin/yt-dlp.exe");
 
+  // Only use local binary if it exists (Windows Dev)
+  // Otherwise default to "yt-dlp" in PATH (Linux/Docker)
   if (existsSync(localBin)) {
     binary = localBin;
     console.log(`[Engine] Using local binary: ${binary}`);
+  } else {
+    // Check if we are in Docker/Linux where it might be at /usr/local/bin/yt-dlp
+    if (existsSync("/usr/local/bin/yt-dlp")) {
+      binary = "/usr/local/bin/yt-dlp";
+    }
+    console.log(`[Engine] Using global binary: ${binary}`);
   }
 
   const args: string[] = [binary, "--no-warnings", "--extractor-retries", "3"];
