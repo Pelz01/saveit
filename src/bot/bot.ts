@@ -13,10 +13,10 @@ const DOWNLOAD_DIR = process.env.DOWNLOAD_DIR || "./downloads";
 const URL_REGEX = /https?:\/\/[^\s]+/gi;
 
 // Progress bar helper
-function progressBar(percent: number): string {
-  const filled = Math.round(percent / 10);
-  const empty = 10 - filled;
-  return "▓".repeat(filled) + "░".repeat(empty) + ` ${percent}%`;
+// Helper to escape MarkdownV2 chars
+function escapeMd(text: string): string {
+  // Escapes all special characters in MarkdownV2
+  return text.replace(/[_*[\]()~`>#+\-=|{}.!]/g, "\\$&");
 }
 
 export function startBot(token: string) {
@@ -24,18 +24,18 @@ export function startBot(token: string) {
 
   // ── Set bot menu commands ──
   bot.telegram.setMyCommands([
-    { command: "start", description: "👋 Start the bot" },
-    { command: "help", description: "❓ How to use Grabh" },
-    { command: "supported", description: "📺 Supported platforms" },
-    { command: "status", description: "📊 Server & queue status" },
+    { command: "start", description: "👋 START PROTOCOL" },
+    { command: "help", description: "❓ PROTOCOL INFO" },
+    { command: "supported", description: "📺 TARGET LIST" },
+    { command: "status", description: "📊 SYSTEM LOAD" },
   ]);
 
   // ── /start command ──
   bot.start((ctx) => {
     ctx.reply(
       `🔮 *SAVE SYSTEM ONLINE*\n\n` +
-      `Send a link. I will acquire the media.\n\n` +
-      `_Compatible with YouTube, Instagram, TikTok, X, and others._\n\n` +
+      `Send a link\\. I will acquire the media\\.\n\n` +
+      `_Compatible with YouTube, Instagram, TikTok, X, and others\\._\n\n` +
       `cmds:\n` +
       `/help — Protocol info\n` +
       `/status — System load`,
@@ -53,7 +53,7 @@ export function startBot(token: string) {
       `*PARAMETERS:*\n` +
       `• Max Size: 50MB\n` +
       `• Queue: Active\n\n` +
-      `_Execute._`,
+      `_Execute\\._`,
       { parse_mode: "MarkdownV2" }
     );
   });
@@ -62,13 +62,13 @@ export function startBot(token: string) {
   bot.command("supported", (ctx) => {
     ctx.reply(
       `📡 *TARGETS*\n\n` +
-      `[+] YouTube\n` +
-      `[+] Instagram\n` +
-      `[+] TikTok\n` +
-      `[+] X (Twitter)\n` +
-      `[+] Reddit\n` +
-      `[+] Threads\n\n` +
-      `_Universal extractor active._`,
+      `\\[\\+\\] YouTube\n` +
+      `\\[\\+\\] Instagram\n` +
+      `\\[\\+\\] TikTok\n` +
+      `\\[\\+\\] X \\(Twitter\\)\n` +
+      `\\[\\+\\] Reddit\n` +
+      `\\[\\+\\] Threads\n\n` +
+      `_Universal extractor active\\._`,
       { parse_mode: "MarkdownV2" }
     );
   });
@@ -81,7 +81,7 @@ export function startBot(token: string) {
       `Processing: ${q.active}\n` +
       `Pending: ${q.waiting}\n` +
       `Capacity: ${q.maxConcurrent}\n\n` +
-      `_Online._`,
+      `_Online\\._`,
       { parse_mode: "MarkdownV2" }
     );
   });
@@ -93,19 +93,17 @@ export function startBot(token: string) {
 
     if (!urls || urls.length === 0) {
       await ctx.reply(
-        "⚡ *NO LINK DETECTED*\n\nTransmit a valid URL to begin operation.",
-        { parse_mode: "Markdown" }
+        `⚡ *NO LINK DETECTED*\n\nTransmit a valid URL to begin operation\\.`,
+        { parse_mode: "MarkdownV2" }
       );
       return;
     }
 
     const url = urls[0];
 
-
-
     // Show "searching" status
-    const statusMsg = await ctx.reply("🔍 _Searching for your video…_", {
-      parse_mode: "Markdown",
+    const statusMsg = await ctx.reply("📡 _RESOLVING RESOURCE\\.\\.\\._", {
+      parse_mode: "MarkdownV2",
     });
 
     try {
@@ -116,7 +114,7 @@ export function startBot(token: string) {
       const queueStatus = downloadQueue.status;
       const queueMsg =
         queueStatus.waiting > 0
-          ? `\n⏳ _Queue position: ${queueStatus.waiting + 1}_`
+          ? `\n⏳ _QUEUE POSITION: ${queueStatus.waiting + 1}_`
           : "";
 
       // Show initial download status with video details
@@ -124,8 +122,10 @@ export function startBot(token: string) {
         ctx.chat.id,
         statusMsg.message_id,
         undefined,
-        `📹 *${info.title}*\n👤 ${info.uploader} • ⏱ ${info.duration_string}\n\n📥 Downloading…${queueMsg}\n${progressBar(0)}`,
-        { parse_mode: "Markdown" }
+        `📼 *${escapeMd(info.title)}*\n` +
+        `👤 ${escapeMd(info.uploader)} • ⏱ ${escapeMd(info.duration_string)}\n\n` +
+        `⬇️ ACQUIRING\\.\\.\\.${queueMsg}\n${progressBar(0)}`,
+        { parse_mode: "MarkdownV2" }
       ).catch(() => { });
 
       // Animate progress while download runs
@@ -135,16 +135,11 @@ export function startBot(token: string) {
       const progressInterval = setInterval(async () => {
         if (downloadDone) return;
 
-        // Simulate progress (accelerates then slows near end)
-        if (currentPercent < 30) {
-          currentPercent += Math.floor(Math.random() * 8 + 3);
-        } else if (currentPercent < 60) {
-          currentPercent += Math.floor(Math.random() * 5 + 2);
-        } else if (currentPercent < 85) {
-          currentPercent += Math.floor(Math.random() * 3 + 1);
-        } else if (currentPercent < 95) {
-          currentPercent += 1;
-        }
+        // Simulate progress
+        if (currentPercent < 30) currentPercent += Math.floor(Math.random() * 8 + 3);
+        else if (currentPercent < 60) currentPercent += Math.floor(Math.random() * 5 + 2);
+        else if (currentPercent < 85) currentPercent += Math.floor(Math.random() * 3 + 1);
+        else if (currentPercent < 95) currentPercent += 1;
         currentPercent = Math.min(currentPercent, 95);
 
         try {
@@ -152,12 +147,12 @@ export function startBot(token: string) {
             ctx.chat.id,
             statusMsg.message_id,
             undefined,
-            `📹 *${info.title}*\n👤 ${info.uploader} • ⏱ ${info.duration_string}\n\n📥 Downloading…\n${progressBar(currentPercent)}`,
-            { parse_mode: "Markdown" }
+            `📼 *${escapeMd(info.title)}*\n` +
+            `👤 ${escapeMd(info.uploader)} • ⏱ ${escapeMd(info.duration_string)}\n\n` +
+            `⬇️ ACQUIRING\\.\\.\\.\n${progressBar(currentPercent)}`,
+            { parse_mode: "MarkdownV2" }
           );
-        } catch {
-          // Ignore edit errors (message not modified, etc.)
-        }
+        } catch { }
       }, 3000);
 
       // Download via queue
@@ -177,13 +172,13 @@ export function startBot(token: string) {
           ctx.chat.id,
           statusMsg.message_id,
           undefined,
-          `⚠️ *File too large for Telegram* (${(fileSize / 1024 / 1024).toFixed(1)}MB)\n\n📹 _${info.title}_\n⏱ ${info.duration_string}\n\n_Telegram bots can only send files up to 50MB._`,
-          { parse_mode: "Markdown" }
+          `⚠️ *FILE SIZE EXCEEDED* \\(${(fileSize / 1024 / 1024).toFixed(1)}MB\\)\n\n` +
+          `📼 _${escapeMd(info.title)}_\n` +
+          `⏱ ${escapeMd(info.duration_string)}\n\n` +
+          `_System cannot transmit files over 50MB via Telegram protocol\\._`,
+          { parse_mode: "MarkdownV2" }
         ).catch(() => { });
-        // Clean up
-        try {
-          (await import("fs/promises")).unlink(filePath);
-        } catch { }
+        try { (await import("fs/promises")).unlink(filePath); } catch { }
         return;
       }
 
@@ -193,8 +188,11 @@ export function startBot(token: string) {
           ctx.chat.id,
           statusMsg.message_id,
           undefined,
-          `📹 *${info.title}*\n👤 ${info.uploader} • ⏱ ${info.duration_string}\n\n✅ Download complete!\n${progressBar(100)}\n\n_Sending to you…_`,
-          { parse_mode: "Markdown" }
+          `📼 *${escapeMd(info.title)}*\n` +
+          `👤 ${escapeMd(info.uploader)} • ⏱ ${escapeMd(info.duration_string)}\n\n` +
+          `✅ ACQUISITION COMPLETE\n${progressBar(100)}\n\n` +
+          `_Transmitting\\.\\.\\._`,
+          { parse_mode: "MarkdownV2" }
         )
         .catch(() => { });
 
@@ -202,29 +200,26 @@ export function startBot(token: string) {
       await ctx.replyWithVideo(
         { source: filePath } as InputFile,
         {
-          caption: `📹 *${info.title}*\n👤 ${info.uploader}\n⏱ ${info.duration_string}`,
-          parse_mode: "Markdown",
+          caption: `📼 *${escapeMd(info.title)}*\n` +
+            `👤 ${escapeMd(info.uploader)}\n` +
+            `⏱ ${escapeMd(info.duration_string)}`,
+          parse_mode: "MarkdownV2",
         }
       ).catch((err) => {
         console.error("[Bot Reply Error]", err);
-        ctx.reply("❌ Error sending video. It might be too large or invalid format.").catch(() => { });
+        ctx.reply("❌ TRANSMISSION ERROR\\. Format invalid or size limit reached\\.", { parse_mode: "MarkdownV2" }).catch(() => { });
       });
 
-
-
-      // Delete progress message after video is sent
+      // Delete progress message
       await ctx.telegram
         .deleteMessage(ctx.chat.id, statusMsg.message_id)
         .catch(() => { });
 
-      // Clean up downloaded file
-      try {
-        (await import("fs/promises")).unlink(filePath);
-      } catch { }
+      // Clean up
+      try { (await import("fs/promises")).unlink(filePath); } catch { }
+
     } catch (err: any) {
       console.error("[Bot Error]", err.message);
-
-      // Clear interval if error occurred during download
       // @ts-ignore
       if (typeof progressInterval !== 'undefined') clearInterval(progressInterval);
 
@@ -233,13 +228,13 @@ export function startBot(token: string) {
           ctx.chat.id,
           statusMsg.message_id,
           undefined,
-          `❌ *Couldn't grab that one.*\n\n_${err.message || "Unknown error"}_\n\n💡 _Try another link or check /supported_`,
-          { parse_mode: "Markdown" }
+          `❌ *ACQUISITION FAILED*\n\n` +
+          `_${escapeMd(err.message || "Unknown system error")}_\n\n` +
+          `💡 _Verify URL or check /supported_`,
+          { parse_mode: "MarkdownV2" }
         )
         .catch(() => {
-          ctx.reply(`❌ *Couldn't grab that one.*\n\n_${err.message}_`, {
-            parse_mode: "Markdown",
-          }).catch(() => { });
+          ctx.reply(`❌ ACQUISITION FAILED\n\n${escapeMd(err.message)}`, { parse_mode: "MarkdownV2" }).catch(() => { });
         });
     }
   });
@@ -249,7 +244,7 @@ export function startBot(token: string) {
     dropPendingUpdates: true,
   });
 
-  console.log("  🤖 Grabh Bot is live!\n");
+  console.log("  🤖 SAVE SYSTEM is live!\n");
 
   // Graceful shutdown
   process.on("SIGINT", () => bot.stop("SIGINT"));
