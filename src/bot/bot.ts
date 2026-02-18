@@ -7,7 +7,7 @@ import { message } from "telegraf/filters";
 import { getVideoInfo, downloadVideo } from "../engine/grabh";
 import { downloadQueue } from "../engine/queue";
 import { InputFile } from "telegraf/types";
-import { saveTelegramUser, incrementTelegramDownloads, incrementGlobalDownloads } from "../firebase-admin";
+
 
 const DOWNLOAD_DIR = process.env.DOWNLOAD_DIR || "./downloads";
 const URL_REGEX = /https?:\/\/[^\s]+/gi;
@@ -34,12 +34,12 @@ export function startBot(token: string) {
   bot.start((ctx) => {
     ctx.reply(
       `👋 *Welcome to Grabh\\!*\n\n` +
-        `Paste any video link and I'll grab it for you\\.\n\n` +
-        `_Supports YouTube, Instagram, TikTok, Twitter/X, and 1000\\+ sites\\._\n\n` +
-        `📋 *Commands:*\n` +
-        `/help — How to use\n` +
-        `/supported — See all platforms\n` +
-        `/status — Queue \\& server info`,
+      `Paste any video link and I'll grab it for you\\.\n\n` +
+      `_Supports YouTube, Instagram, TikTok, Twitter/X, and 1000\\+ sites\\._\n\n` +
+      `📋 *Commands:*\n` +
+      `/help — How to use\n` +
+      `/supported — See all platforms\n` +
+      `/status — Queue \\& server info`,
       { parse_mode: "MarkdownV2" }
     );
   });
@@ -48,13 +48,13 @@ export function startBot(token: string) {
   bot.help((ctx) => {
     ctx.reply(
       `🎬 *How to use Grabh*\n\n` +
-        `1\\. Send me a video link\n` +
-        `2\\. I'll find the video info\n` +
-        `3\\. Download \\& send the MP4 right here\n\n` +
-        `*Limits:*\n` +
-        `• Max file size: 50MB \\(Telegram limit\\)\n` +
-        `• Concurrent downloads are queued\n\n` +
-        `💡 _Just paste \\& go\\!_`,
+      `1\\. Send me a video link\n` +
+      `2\\. I'll find the video info\n` +
+      `3\\. Download \\& send the MP4 right here\n\n` +
+      `*Limits:*\n` +
+      `• Max file size: 50MB \\(Telegram limit\\)\n` +
+      `• Concurrent downloads are queued\n\n` +
+      `💡 _Just paste \\& go\\!_`,
       { parse_mode: "MarkdownV2" }
     );
   });
@@ -63,18 +63,18 @@ export function startBot(token: string) {
   bot.command("supported", (ctx) => {
     ctx.reply(
       `📺 *Supported Platforms*\n\n` +
-        `✅ YouTube\n` +
-        `✅ Instagram \\(Reels, Stories\\)\n` +
-        `✅ TikTok\n` +
-        `✅ Twitter / X\n` +
-        `✅ Reddit\n` +
-        `✅ Facebook\n` +
-        `✅ Vimeo\n` +
-        `✅ Dailymotion\n` +
-        `✅ Twitch Clips\n` +
-        `✅ Pinterest\n` +
-        `✅ And 1000\\+ more\\!\n\n` +
-        `_Just send any link and I'll try to grab it\\._`,
+      `✅ YouTube\n` +
+      `✅ Instagram \\(Reels, Stories\\)\n` +
+      `✅ TikTok\n` +
+      `✅ Twitter / X\n` +
+      `✅ Reddit\n` +
+      `✅ Facebook\n` +
+      `✅ Vimeo\n` +
+      `✅ Dailymotion\n` +
+      `✅ Twitch Clips\n` +
+      `✅ Pinterest\n` +
+      `✅ And 1000\\+ more\\!\n\n` +
+      `_Just send any link and I'll try to grab it\\._`,
       { parse_mode: "MarkdownV2" }
     );
   });
@@ -84,10 +84,10 @@ export function startBot(token: string) {
     const q = downloadQueue.status;
     ctx.reply(
       `📊 *Server Status*\n\n` +
-        `🔄 Active downloads: ${q.active}\n` +
-        `⏳ Queued: ${q.waiting}\n` +
-        `🔧 Max concurrent: ${q.maxConcurrent}\n\n` +
-        `_Server is running\\._`,
+      `🔄 Active downloads: ${q.active}\n` +
+      `⏳ Queued: ${q.waiting}\n` +
+      `🔧 Max concurrent: ${q.maxConcurrent}\n\n` +
+      `_Server is running\\._`,
       { parse_mode: "MarkdownV2" }
     );
   });
@@ -107,8 +107,7 @@ export function startBot(token: string) {
 
     const url = urls[0];
 
-    // Save Telegram user to Firestore
-    saveTelegramUser(ctx.message.from).catch(() => {});
+
 
     // Show "searching" status
     const statusMsg = await ctx.reply("🔍 _Searching for your video…_", {
@@ -175,8 +174,8 @@ export function startBot(token: string) {
       downloadDone = true;
       clearInterval(progressInterval);
 
-      const file = Bun.file(filePath);
-      const fileSize = file.size;
+      const stats = await import("fs/promises").then(fs => fs.stat(filePath));
+      const fileSize = stats.size;
 
       // Telegram limit: 50MB for bots
       if (fileSize > 50 * 1024 * 1024) {
@@ -189,8 +188,8 @@ export function startBot(token: string) {
         );
         // Clean up
         try {
-          (await import("fs")).unlinkSync(filePath);
-        } catch {}
+          (await import("fs/promises")).unlink(filePath);
+        } catch { }
         return;
       }
 
@@ -203,7 +202,7 @@ export function startBot(token: string) {
           `📹 *${info.title}*\n👤 ${info.uploader} • ⏱ ${info.duration_string}\n\n✅ Download complete!\n${progressBar(100)}\n\n_Sending to you…_`,
           { parse_mode: "Markdown" }
         )
-        .catch(() => {});
+        .catch(() => { });
 
       // Send the video
       await ctx.replyWithVideo(
@@ -214,19 +213,17 @@ export function startBot(token: string) {
         }
       );
 
-      // Track download in Firestore (per-user + global)
-      incrementTelegramDownloads(ctx.message.from.id).catch(() => {});
-      incrementGlobalDownloads().catch(() => {});
+
 
       // Delete progress message after video is sent
       await ctx.telegram
         .deleteMessage(ctx.chat.id, statusMsg.message_id)
-        .catch(() => {});
+        .catch(() => { });
 
       // Clean up downloaded file
       try {
-        (await import("fs")).unlinkSync(filePath);
-      } catch {}
+        (await import("fs/promises")).unlink(filePath);
+      } catch { }
     } catch (err: any) {
       console.error("[Bot Error]", err.message);
 

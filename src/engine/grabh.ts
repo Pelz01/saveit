@@ -1,8 +1,14 @@
 // ──────────────────────────────────────────
-// GRABH Engine — yt-dlp Wrapper
+// SAVE Engine — yt-dlp Wrapper (Node.js)
 // ──────────────────────────────────────────
 
 import { existsSync } from "fs";
+import { spawn } from "child_process";
+import { fileURLToPath } from "url";
+import { dirname, resolve } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const COOKIES_FILE = process.env.COOKIES_FILE || "";
 const COOKIES_BROWSER = process.env.COOKIES_BROWSER || ""; // e.g. "chrome", "firefox", "safari"
@@ -11,7 +17,19 @@ const COOKIES_BROWSER = process.env.COOKIES_BROWSER || ""; // e.g. "chrome", "fi
  * Build base yt-dlp args with cookie/auth support
  */
 function baseArgs(): string[] {
-  const args: string[] = ["yt-dlp", "--no-warnings", "--extractor-retries", "3"];
+  let binary = "yt-dlp";
+
+  // Try to resolve local binary relative to this file
+  // Current file: src/engine/grabh.ts
+  // Target binary: bin/yt-dlp.exe (root/bin/yt-dlp.exe)
+  const localBin = resolve(__dirname, "../../bin/yt-dlp.exe");
+
+  if (existsSync(localBin)) {
+    binary = localBin;
+    console.log(`[Engine] Using local binary: ${binary}`);
+  }
+
+  const args: string[] = [binary, "--no-warnings", "--extractor-retries", "3"];
 
   // Cookie file takes priority
   if (COOKIES_FILE && existsSync(COOKIES_FILE)) {
@@ -55,20 +73,36 @@ export interface VideoInfo {
 export async function getVideoInfo(url: string): Promise<VideoInfo> {
   const args = [...baseArgs(), "--dump-json", url];
 
-  const proc = Bun.spawn(args, {
-    stdout: "pipe",
-    stderr: "pipe",
+  const raw: any = await new Promise((resolve, reject) => {
+    const proc = spawn(args[0], args.slice(1));
+
+    let stdout = "";
+    let stderr = "";
+
+    proc.stdout.on("data", (data) => {
+      stdout += data.toString();
+    });
+
+    proc.stderr.on("data", (data) => {
+      stderr += data.toString();
+    });
+
+    proc.on("close", (code) => {
+      if (code !== 0) {
+        reject(new Error(`yt-dlp failed: ${stderr.trim() || "Unknown error"}`));
+        return;
+      }
+      try {
+        resolve(JSON.parse(stdout));
+      } catch (e: any) {
+        reject(new Error(`Failed to parse yt-dlp output: ${e.message}`));
+      }
+    });
+
+    proc.on("error", (err) => {
+      reject(err);
+    });
   });
-
-  const stdout = await new Response(proc.stdout).text();
-  const stderr = await new Response(proc.stderr).text();
-  const exitCode = await proc.exited;
-
-  if (exitCode !== 0) {
-    throw new Error(`yt-dlp failed: ${stderr.trim() || "Unknown error"}`);
-  }
-
-  const raw = JSON.parse(stdout);
 
   // Extract usable formats (mp4 with both video + audio)
   const formats: VideoFormat[] = (raw.formats || [])
@@ -114,10 +148,10 @@ export async function downloadVideo(
   outputDir: string
 ): Promise<string> {
   const { mkdirSync } = await import("fs");
-  const { resolve } = await import("path");
+  const { resolve: pathResolve } = await import("path");
 
   // Always use absolute path
-  const absDir = resolve(outputDir);
+  const absDir = pathResolve(outputDir);
   if (!existsSync(absDir)) {
     mkdirSync(absDir, { recursive: true });
   }
@@ -133,23 +167,38 @@ export async function downloadVideo(
     url,
   ];
 
-  const proc = Bun.spawn(args, {
-    stdout: "pipe",
-    stderr: "pipe",
+  const filePath: string = await new Promise((resolve, reject) => {
+    const proc = spawn(args[0], args.slice(1));
+
+    let stdout = "";
+    let stderr = "";
+
+    proc.stdout.on("data", (data) => {
+      stdout += data.toString();
+    });
+
+    proc.stderr.on("data", (data) => {
+      stderr += data.toString();
+    });
+
+    proc.on("close", (code) => {
+      if (code !== 0) {
+        reject(new Error(`Download failed: ${stderr.trim() || "Unknown error"}`));
+        return;
+      }
+
+      const path = stdout.trim().split("\n").pop()?.trim();
+      if (!path || !existsSync(path)) {
+        reject(new Error("Download completed but file not found on disk"));
+        return;
+      }
+      resolve(path);
+    });
+
+    proc.on("error", (err) => {
+      reject(err);
+    });
   });
-
-  const stdout = await new Response(proc.stdout).text();
-  const stderr = await new Response(proc.stderr).text();
-  const exitCode = await proc.exited;
-
-  if (exitCode !== 0) {
-    throw new Error(`Download failed: ${stderr.trim() || "Unknown error"}`);
-  }
-
-  const filePath = stdout.trim().split("\n").pop()?.trim();
-  if (!filePath || !existsSync(filePath)) {
-    throw new Error("Download completed but file not found on disk");
-  }
 
   return filePath;
 }

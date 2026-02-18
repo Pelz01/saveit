@@ -1,602 +1,149 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="GRABH — Paste a link. Get the video. The minimalist universal video downloader."
-    />
-    <title>GRABH — The Minimalist Downloader</title>
 
-    <!-- Urbanist Font (Google Fonts) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Save — Minimalist Video Downloader</title>
+  <meta name="description" content="Save videos from anywhere. No ads. No tracking. Just speed.">
 
-    <link rel="stylesheet" href="/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
 
-    <!-- Favicon (inline SVG) -->
-    <link
-      rel="icon"
-      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⬇</text></svg>"
-    />
-  </head>
-  <body>
-    <!-- ── Background ── -->
-    <div class="bg">
-      <div class="bg__mesh"></div>
-      <div class="bg__blobs">
-        <div class="bg__blob bg__blob--1"></div>
-        <div class="bg__blob bg__blob--2"></div>
-        <div class="bg__blob bg__blob--3"></div>
-      </div>
-    </div>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💾</text></svg>">
+</head>
 
-    <!-- ── Auth Chip (top-right) ── -->
-    <div class="auth-chip" id="authChip" style="display: none;">
-      <img class="auth-chip__avatar" id="authAvatar" src="" alt="" />
-      <span class="auth-chip__name" id="authName"></span>
-    </div>
+<body>
+  <div class="noise"></div>
+  <div class="ambient"></div>
 
-    <main class="app">
-      <!-- ── Hero ── -->
-      <section class="hero">
-        <div class="hero__logo">
-          <div class="hero__icon hero__icon--premium">
-            <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect width="64" height="64" rx="16" fill="currentColor"/>
-              <path d="M32 18V46M32 46L20 34M32 46L44 34" stroke="var(--bg-primary)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <h1 class="hero__title">grabh</h1>
-        </div>
-        <p class="hero__subtitle">Paste a link. Get the video.</p>
-        <p class="download-counter" id="downloadCounter" style="visibility: hidden;"><span id="counterNumber">0</span> videos grabbed</p>
-      </section>
+  <main class="app">
+    <section class="hero">
+      <h1>save</h1>
+      <p class="hero__subtitle">Paste a link. Get the video.</p>
+    </section>
 
-      <!-- ── Search ── -->
-      <section class="search">
+    <section class="search">
+      <div class="search__wrapper">
         <form class="search__form" id="searchForm">
-          <input
-            type="url"
-            class="search__input"
-            id="urlInput"
-            placeholder="Paste any video link here..."
-            autocomplete="off"
-            spellcheck="false"
-            required
-          />
-          <button type="submit" class="search__button" id="searchButton">
-            <span class="search__button-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 5v14M19 12l-7 7-7-7"/>
-              </svg>
-            </span>
-            Grab It
-          </button>
+          <input type="url" class="search__input" id="urlInput" placeholder="https://..." required autocomplete="off"
+            spellcheck="false">
+          <button type="submit" class="search__button" id="searchBtn">Get</button>
         </form>
-        <p class="search__hint" id="searchHint">Max file size: <span id="maxSizeLabel">200</span>MB</p>
-      </section>
-
-      <!-- ── Loading ── -->
-      <section class="loading" id="loading">
-        <div class="progress">
-          <div class="progress__bar" id="searchProgressBar"></div>
-        </div>
-        <p class="loading__text" id="loadingText">Searching for your video…</p>
-        <p class="loading__percent" id="loadingPercent">0%</p>
-      </section>
-
-      <!-- ── Error ── -->
-      <section class="error" id="error">
-        <div class="error__icon">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--error)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-        </div>
-        <p class="error__message" id="errorMessage">
-          Something went wrong. Please check the URL and try again.
-        </p>
-      </section>
-
-      <!-- ── Result Card ── -->
-      <section class="result" id="result">
-        <article class="result__card">
-          <div class="result__thumbnail-wrap">
-            <img
-              class="result__thumbnail"
-              id="resultThumbnail"
-              src=""
-              alt="Video thumbnail"
-            />
-            <span class="result__duration" id="resultDuration"></span>
-          </div>
-          <div class="result__body">
-            <h2 class="result__title" id="resultTitle"></h2>
-            <div class="result__meta">
-              <span class="result__meta-item">
-                <span class="result__meta-icon">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                  </svg>
-                </span>
-                <span id="resultUploader"></span>
-              </span>
-              <span class="result__meta-item">
-                <span class="result__meta-icon">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><path d="M8 21h8M12 17v4"/>
-                  </svg>
-                </span>
-                <span id="resultPlatform"></span>
-              </span>
-              <span class="result__meta-item" id="resultSizeWrap" style="display: none;">
-                <span class="result__meta-icon">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6" y2="6"/><line x1="6" y1="18" x2="6" y2="18"/>
-                  </svg>
-                </span>
-                <span id="resultFilesize"></span>
-              </span>
-            </div>
-            <div class="result__actions">
-              <button class="result__download-btn" id="downloadBtn" type="button">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 5v14M19 12l-7 7-7-7"/>
-                </svg>
-                <span id="downloadBtnText">Download MP4</span>
-                <span id="downloadBtnSpinner" class="btn-spinner" style="display:none;"></span>
-              </button>
-              <button class="result__copy-btn" id="copyBtn" type="button">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                </svg>
-                Copy Link
-              </button>
-            </div>
-            <!-- Queue status -->
-            <p class="queue-status" id="queueStatus" style="display: none;"></p>
-          </div>
-        </article>
-      </section>
-
-      <!-- ── Success State ── -->
-      <section class="success" id="success">
-        <div class="success__icon">
-          <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
-            <circle cx="28" cy="28" r="28" fill="var(--accent)" opacity="0.12"/>
-            <circle cx="28" cy="28" r="20" fill="var(--accent)" opacity="0.2"/>
-            <path d="M22 28.5L26 32.5L34 24.5" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-        <h3 class="success__title">Download Complete!</h3>
-        <p class="success__text">Your video has been saved to your device.</p>
-        <button class="success__btn" id="grabAnotherBtn" type="button">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 5v14M19 12l-7 7-7-7"/>
-          </svg>
-          Grab Another Video
-        </button>
-      </section>
-
-      <!-- ── Supported Platforms ── -->
-      <section class="platforms">
-        <p class="platforms__label">Works with</p>
-        <div class="platforms__list">
-          <span class="platforms__item">YouTube</span>
-          <span class="platforms__item">Instagram</span>
-          <span class="platforms__item">TikTok</span>
-          <span class="platforms__item">Twitter / X</span>
-          <span class="platforms__item">Reddit</span>
-          <span class="platforms__item">Facebook</span>
-          <span class="platforms__item">1000+ more</span>
-        </div>
-      </section>
-    </main>
-
-    <!-- ── Footer ── -->
-    <footer class="footer">
-      <p class="footer__text">
-        Built by <strong>Kelly Owoju</strong> — Powered by yt-dlp
-      </p>
-      <a class="footer__github" href="https://github.com/Kellie-Brighty/grabh" target="_blank" rel="noopener">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-        </svg>
-        View on GitHub
-      </a>
-    </footer>
-
-    <!-- ── Auth Modal ── -->
-    <div class="auth-modal" id="authModal">
-      <div class="auth-modal__backdrop" id="authModalBackdrop"></div>
-      <div class="auth-modal__card">
-        <div class="auth-modal__icon">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/>
-          </svg>
-        </div>
-        <h3 class="auth-modal__title">Your video is ready!</h3>
-        <p class="auth-modal__text">Sign in with Google to save it to your device.</p>
-        <button class="auth-modal__google-btn" id="googleSignInBtn" type="button">
-          <svg class="auth-modal__google-icon" viewBox="0 0 24 24" width="20" height="20">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-          </svg>
-          Continue with Google
-        </button>
-        <p class="auth-modal__note">We only need your email. No spam, ever.</p>
       </div>
+    </section>
+
+    <!-- Loading State -->
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>Fetching video info...</p>
     </div>
 
-    <script>
-      // ── API Configuration ──
-      // When running on Firebase Hosting, point to the DigitalOcean Droplet.
-      // When running locally, use relative paths.
-      const API_BASE = (window.location.hostname.includes('web.app') || window.location.hostname.includes('firebaseapp.com'))
-        ? 'http://YOUR_DIGITALOCEAN_IP:3001' 
-        : '';
-    </script>
+    <!-- Error State -->
+    <div class="error" id="error">
+      <p class="error__msg" id="errorMsg">Something went wrong.</p>
+    </div>
 
-    <!-- ── Firebase SDK (compat) ── -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-    <script src="/firebase.js"></script>
+    <!-- Result Card -->
+    <section class="result" id="result">
+      <article class="card">
+        <div class="card__media">
+          <img src="" alt="" class="card__img" id="thumb">
+        </div>
+        <div class="card__body">
+          <h2 class="card__title" id="title">User Video</h2>
+          <div class="card__meta">
+            <span id="duration">0:00</span>
+            <span id="source">Unknown</span>
+          </div>
+          <div class="btn-group">
+            <a href="#" class="btn btn--primary" id="downloadBtn" download>
+              Download MP4
+            </a>
+            <button class="btn btn--secondary" id="copyBtn">
+              Copy Link
+            </button>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
 
-    <script>
-      // ──────────────────────────────────────
-      // GRABH Frontend Logic
-      // ──────────────────────────────────────
+  <footer>
+    <p>Minimalist. Stateless. Open Source.</p>
+  </footer>
 
-      const form = document.getElementById("searchForm");
-      const urlInput = document.getElementById("urlInput");
-      const searchButton = document.getElementById("searchButton");
-      const loading = document.getElementById("loading");
-      const error = document.getElementById("error");
-      const errorMessage = document.getElementById("errorMessage");
-      const result = document.getElementById("result");
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const form = $('searchForm');
+    const input = $('urlInput');
+    const btn = $('searchBtn');
 
-      // Result elements
-      const resultThumbnail = document.getElementById("resultThumbnail");
-      const resultDuration = document.getElementById("resultDuration");
-      const resultTitle = document.getElementById("resultTitle");
-      const resultUploader = document.getElementById("resultUploader");
-      const resultPlatform = document.getElementById("resultPlatform");
-      const downloadBtn = document.getElementById("downloadBtn");
-      const copyBtn = document.getElementById("copyBtn");
+    // State management
+    const setState = (state) => {
+      ['loading', 'error', 'result'].forEach(id => $(id).classList.remove('is-visible'));
+      if (state) $(state).classList.add('is-visible');
+      btn.disabled = state === 'loading';
+      btn.textContent = state === 'loading' ? '...' : 'Get';
+    };
 
-      // Auth elements
-      const authChip = document.getElementById("authChip");
-      const authAvatar = document.getElementById("authAvatar");
-      const authName = document.getElementById("authName");
-      const authModal = document.getElementById("authModal");
-      const authModalBackdrop = document.getElementById("authModalBackdrop");
-      const googleSignInBtn = document.getElementById("googleSignInBtn");
-      const queueStatus = document.getElementById("queueStatus");
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const url = input.value.trim();
+      if (!url) return;
 
-      let currentVideoUrl = "";
-      let pendingDownload = null; // stores download fn to run after auth
+      setState('loading');
 
-      // ── Fetch server config + download count ──
-      const maxSizeLabel = document.getElementById('maxSizeLabel');
-      const counterNumber = document.getElementById('counterNumber');
-      const downloadCounter = document.getElementById('downloadCounter');
-      fetch(`${API_BASE}/api/status`)
-        .then(r => r.json())
-        .then(data => {
-          if (data.maxFileSizeMB) maxSizeLabel.textContent = data.maxFileSizeMB;
-          if (data.totalDownloads !== undefined) {
-            counterNumber.textContent = data.totalDownloads.toLocaleString();
-            downloadCounter.style.visibility = 'visible';
-          }
-        })
-        .catch(() => {});
+      try {
+        // Step 1: Get Info
+        const res = await fetch('/api/grabh', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
 
-      // ── Auth State ──
-      onAuthChange((user) => {
-        if (user) {
-          authAvatar.src = user.photoURL || '';
-          authAvatar.alt = user.displayName || '';
-          authName.textContent = (user.displayName || user.email || '').split(' ')[0];
-          authChip.style.display = 'flex';
-        } else {
-          authChip.style.display = 'none';
-        }
-      });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
 
-      // ── Auth Modal ──
-      function showAuthModal() {
-        authModal.classList.add('is-visible');
+        const info = data.data;
+
+        // Populate UI
+        $('thumb').src = info.thumbnail;
+        $('title').textContent = info.title;
+        $('duration').textContent = info.duration_string;
+        $('source').textContent = info.extractor.toUpperCase();
+
+        // Setup Download Button
+        const safeTitle = info.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        const dlUrl = `/api/download?url=${encodeURIComponent(url)}`;
+
+        const dlBtn = $('downloadBtn');
+        dlBtn.href = dlUrl;
+        dlBtn.setAttribute('download', `${safeTitle}.mp4`);
+
+        // Handle Direct Download Click to avoid navigation
+        dlBtn.onclick = (e) => {
+          // Optional: You could allow default behavior or handle blob download here
+          // implementing a simple direct download for now
+        };
+
+        setState('result');
+      } catch (err) {
+        $('errorMsg').textContent = err.message || 'Failed to fetch video.';
+        setState('error');
       }
+    });
 
-      function hideAuthModal() {
-        authModal.classList.remove('is-visible');
-      }
+    $('copyBtn').addEventListener('click', () => {
+      navigator.clipboard.writeText(input.value);
+      const original = $('copyBtn').textContent;
+      $('copyBtn').textContent = 'Copied!';
+      setTimeout(() => $('copyBtn').textContent = original, 2000);
+    });
+  </script>
+</body>
 
-      authModalBackdrop.addEventListener('click', hideAuthModal);
-
-      googleSignInBtn.addEventListener('click', async () => {
-        googleSignInBtn.disabled = true;
-        googleSignInBtn.textContent = 'Signing in…';
-
-        try {
-          await signInWithGoogle();
-          hideAuthModal();
-
-          // If there's a pending download, execute it
-          if (pendingDownload) {
-            const fn = pendingDownload;
-            pendingDownload = null;
-            fn();
-          }
-        } catch (err) {
-          console.error('[Auth Error]', err);
-          googleSignInBtn.textContent = 'Try again';
-        } finally {
-          googleSignInBtn.disabled = false;
-          // Reset button text after a delay
-          setTimeout(() => {
-            googleSignInBtn.innerHTML = `
-              <svg class="auth-modal__google-icon" viewBox="0 0 24 24" width="20" height="20">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-              </svg>
-              Continue with Google`;
-          }, 2000);
-        }
-      });
-
-      const success = document.getElementById('success');
-      const grabAnotherBtn = document.getElementById('grabAnotherBtn');
-
-      function showState(state) {
-        loading.classList.remove("is-visible");
-        error.classList.remove("is-visible");
-        result.classList.remove("is-visible");
-        success.classList.remove("is-visible");
-
-        if (state === "loading") loading.classList.add("is-visible");
-        if (state === "error") error.classList.add("is-visible");
-        if (state === "result") result.classList.add("is-visible");
-        if (state === "success") success.classList.add("is-visible");
-      }
-
-      // ── Grab Another ──
-      grabAnotherBtn.addEventListener('click', () => {
-        showState(null);
-        urlInput.value = '';
-        urlInput.focus();
-      });
-
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const url = urlInput.value.trim();
-        if (!url) return;
-
-        currentVideoUrl = url;
-        searchButton.disabled = true;
-        showState('loading');
-
-        // Simulated progress for search
-        let searchProgress = 0;
-        const searchBar = document.getElementById('searchProgressBar');
-        const loadingText = document.getElementById('loadingText');
-        const loadingPercent = document.getElementById('loadingPercent');
-
-        searchBar.style.width = '0%';
-        loadingPercent.textContent = '0%';
-        loadingText.textContent = 'Connecting…';
-
-        const searchInterval = setInterval(() => {
-          if (searchProgress < 30) {
-            searchProgress += Math.random() * 8;
-            loadingText.textContent = 'Connecting…';
-          } else if (searchProgress < 60) {
-            searchProgress += Math.random() * 5;
-            loadingText.textContent = 'Fetching video info…';
-          } else if (searchProgress < 85) {
-            searchProgress += Math.random() * 2;
-            loadingText.textContent = 'Processing metadata…';
-          } else if (searchProgress < 95) {
-            searchProgress += Math.random() * 0.5;
-            loadingText.textContent = 'Almost there…';
-          }
-          searchProgress = Math.min(searchProgress, 95);
-          searchBar.style.width = `${searchProgress}%`;
-          loadingPercent.textContent = `${Math.round(searchProgress)}%`;
-        }, 200);
-
-        try {
-          const res = await fetch(`${API_BASE}/api/grabh`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url }),
-          });
-
-          clearInterval(searchInterval);
-          searchBar.style.width = '100%';
-          loadingPercent.textContent = '100%';
-          loadingText.textContent = 'Done!';
-          await new Promise(r => setTimeout(r, 300));
-
-          const data = await res.json();
-
-          if (!res.ok || !data.success) {
-            throw new Error(data.error || 'Failed to fetch video info');
-          }
-
-          const info = data.data;
-
-          // Populate result card
-          resultThumbnail.src = info.thumbnail || '';
-          resultThumbnail.alt = info.title;
-          resultDuration.textContent = info.duration_string || '';
-          resultTitle.textContent = info.title;
-          resultUploader.textContent = info.uploader;
-          resultPlatform.textContent = capitalize(info.extractor);
-
-          // Show file size if available
-          const sizeWrap = document.getElementById('resultSizeWrap');
-          const sizeLabel = document.getElementById('resultFilesize');
-          if (info.filesize_approx) {
-            sizeLabel.textContent = formatBytes(info.filesize_approx);
-            sizeWrap.style.display = '';
-          } else {
-            sizeWrap.style.display = 'none';
-          }
-
-          // Store download URL on the button
-          downloadBtn.dataset.url = `${API_BASE}/api/download?url=${encodeURIComponent(url)}`;
-          downloadBtn.dataset.title = info.title || 'video';
-
-          showState('result');
-        } catch (err) {
-          clearInterval(searchInterval);
-          errorMessage.textContent =
-            err.message ||
-            'Something went wrong. Please check the URL and try again.';
-          showState('error');
-        } finally {
-          searchButton.disabled = false;
-        }
-      });
-
-      // ── Download with auth gate ──
-      const downloadBtnText = document.getElementById('downloadBtnText');
-      const downloadBtnSpinner = document.getElementById('downloadBtnSpinner');
-
-      async function startDownload() {
-        const dlUrl = downloadBtn.dataset.url;
-        if (!dlUrl || downloadBtn.disabled) return;
-
-        downloadBtn.disabled = true;
-        downloadBtnText.textContent = '0%';
-        downloadBtnSpinner.style.display = 'inline-block';
-        queueStatus.style.display = 'none';
-
-        // Show queue status
-        let queuePoll = setInterval(async () => {
-          try {
-            const s = await fetch(`${API_BASE}/api/status`).then(r => r.json());
-            const q = s.queue;
-            if (q.waiting > 0 || q.active > 0) {
-              queueStatus.textContent = `⏳ ${q.active} downloading, ${q.waiting} in queue`;
-              queueStatus.style.display = 'block';
-            }
-          } catch {}
-        }, 2000);
-
-        try {
-          const res = await fetch(dlUrl);
-          if (!res.ok) {
-            const err = await res.json().catch(() => ({ error: 'Download failed' }));
-            throw new Error(err.error || 'Download failed');
-          }
-
-          const contentLength = parseInt(res.headers.get('Content-Length') || '0', 10);
-          const reader = res.body.getReader();
-          const chunks = [];
-          let received = 0;
-
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            chunks.push(value);
-            received += value.length;
-
-            if (contentLength > 0) {
-              const pct = Math.round((received / contentLength) * 100);
-              downloadBtnText.textContent = `${pct}%`;
-            } else {
-              downloadBtnText.textContent = `${(received / 1024 / 1024).toFixed(1)} MB`;
-            }
-          }
-
-          const blob = new Blob(chunks, { type: 'video/mp4' });
-          const safeName = (downloadBtn.dataset.title || 'video')
-            .replace(/[^\w\s\-_.()]/g, '')
-            .replace(/\s+/g, '_')
-            .trim() || 'video';
-
-          const a = document.createElement('a');
-          a.href = URL.createObjectURL(blob);
-          a.download = `${safeName}.mp4`;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          URL.revokeObjectURL(a.href);
-
-          // Track in Firestore + server counter
-          incrementDownloadCount().catch(() => {});
-          fetch(`${API_BASE}/api/download/count`, { method: 'POST' })
-            .then(r => r.json())
-            .then(data => {
-              if (data.totalDownloads !== undefined) counterNumber.textContent = data.totalDownloads.toLocaleString();
-            })
-            .catch(() => {});
-
-          // Show success state
-          showState('success');
-        } catch (err) {
-          downloadBtnText.textContent = '✕ Failed - Try Again';
-          setTimeout(() => { downloadBtnText.textContent = 'Download MP4'; }, 3000);
-        } finally {
-          clearInterval(queuePoll);
-          queueStatus.style.display = 'none';
-          downloadBtn.disabled = false;
-          downloadBtnSpinner.style.display = 'none';
-          downloadBtnText.textContent = 'Download MP4';
-        }
-      }
-
-      downloadBtn.addEventListener('click', () => {
-        const user = getCurrentUser();
-        if (user) {
-          // Authenticated — download immediately
-          startDownload();
-        } else {
-          // Not authenticated — show modal, queue download
-          pendingDownload = startDownload;
-          showAuthModal();
-        }
-      });
-
-      // Copy original link
-      copyBtn.addEventListener('click', () => {
-        if (currentVideoUrl) {
-          navigator.clipboard.writeText(currentVideoUrl).then(() => {
-            const original = copyBtn.textContent;
-            copyBtn.textContent = '✓ Copied!';
-            setTimeout(() => { copyBtn.textContent = original; }, 2000);
-          });
-        }
-      });
-
-      function capitalize(str) {
-        if (!str) return "";
-        return str.charAt(0).toUpperCase() + str.slice(1);
-      }
-
-      function formatBytes(bytes) {
-        if (!bytes || bytes === 0) return '';
-        const units = ['B', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(1024));
-        const size = (bytes / Math.pow(1024, i)).toFixed(i > 0 ? 1 : 0);
-        return `${size} ${units[i]}`;
-      }
-
-      // Auto-focus input
-      urlInput.focus();
-    </script>
-  </body>
 </html>
