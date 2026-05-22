@@ -1,88 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Save — Minimalist Video Downloader</title>
-  <meta name="description" content="Save videos from anywhere. No ads. No tracking. Just speed.">
-
+  <title>SAVE — Minimalist Video Downloader</title>
+  <meta name="description" content="A minimalist, high-speed video downloader powered by Node.js, yt-dlp, and Telegram. No ads, no tracking.">
+  
+  <!-- Premium Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Syne:wght@400;700;800&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  
   <link rel="stylesheet" href="/styles.css">
-
-  <link rel="icon"
-    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💾</text></svg>">
+  
+  <!-- Minimal SVG Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23111827'/><text y='.75em' x='5' font-size='80' fill='%23F97316' font-family='monospace'>S</text></svg>">
 </head>
-
 <body>
-  <main class="app">
+  <div class="grid-texture"></div>
+
+  <main class="container">
+    <!-- Header -->
+    <header class="header animate-fade-in">
+      <div class="logo">
+        <span class="logo__text">SAVE</span>
+        <span class="logo__badge">ONLINE</span>
+      </div>
+      <a href="https://github.com/Pelz01/saveit" target="_blank" rel="noopener noreferrer" class="github-icon-link" aria-label="GitHub Repository">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path><path d="M9 18c-4.51 2-5-2-7-2"></path></svg>
+      </a>
+    </header>
+
+    <!-- Hero Section -->
     <section class="hero">
-      <h1>save</h1>
-      <p class="hero__subtitle">Paste a link. Get the video.</p>
-      <p class="hero__explainer">
-        Supports YouTube, Instagram, Twitter, TikTok, and more. <br>
-        No ads. No tracking. Just the file.
+      <h1 class="hero__title animate-slide-up">
+        Paste a link.<br>Get the video.
+      </h1>
+      <p class="hero__subtitle animate-slide-up" style="animation-delay: 0.1s;">
+        A high-performance downloader powered by <code>yt-dlp</code>. Clean files, zero redirects, zero advertisements.
       </p>
-    </section>
 
-    <section class="search">
-      <div class="search__wrapper">
-        <form class="search__form" id="searchForm">
-          <input type="url" class="search__input" id="urlInput" placeholder="https://..." required autocomplete="off"
-            spellcheck="false">
-          <button type="button" class="search__clear" id="clearBtn" aria-label="Clear">×</button>
-          <button type="submit" class="search__button" id="searchBtn">Get</button>
-        </form>
+      <!-- Main Action Buttons -->
+      <div class="actions animate-slide-up" style="animation-delay: 0.2s;">
+        <!-- REPLACE placeholder with your actual Telegram bot username link -->
+        <a href="https://t.me/saveit_downloader_bot" target="_blank" rel="noopener noreferrer" class="btn btn--primary">
+          <svg class="btn__icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.35-.49.97-.74 3.79-1.65 6.32-2.73 7.59-3.25 3.61-1.48 4.36-1.74 4.85-1.75.11 0 .35.03.5.16.13.12.17.27.18.39.01.07.02.25.01.29z"/>
+          </svg>
+          Launch Telegram Bot
+        </a>
+        <a href="https://github.com/Pelz01/saveit" target="_blank" rel="noopener noreferrer" class="btn btn--secondary">
+          View Source
+        </a>
       </div>
     </section>
 
-    <!-- Loading State -->
-    <div class="loading" id="loading">
-      <div class="loading__bar">
-        <div class="loading__progress"></div>
+    <!-- Simulated Interface -->
+    <section class="mockup-container animate-slide-up" style="animation-delay: 0.3s;">
+      <div class="window">
+        <div class="window__header">
+          <div class="window__dots">
+            <span class="window__dot window__dot--red"></span>
+            <span class="window__dot window__dot--yellow"></span>
+            <span class="window__dot window__dot--green"></span>
+          </div>
+          <span class="window__title">saveit-demonstration.sh</span>
+        </div>
+        <div class="window__body" id="console">
+          <div class="console-line"><span class="console-prompt">ubuntu@saveit:~$</span> <span id="console-cmd"></span><span class="console-cursor"></span></div>
+          <div id="console-output" class="console-output"></div>
+        </div>
       </div>
-      <p class="loading__text" id="loadingText">INITIALIZING_</p>
-    </div>
-
-    <!-- Error State -->
-    <div class="error" id="error" style="display: none;">
-      <p class="error__msg" id="errorMsg"></p>
-    </div>
-
-    <!-- Result Card -->
-    <section class="result" id="result">
-      <article class="card">
-        <div class="card__media">
-          <img src="" alt="" class="card__img" id="thumb">
-        </div>
-        <div class="card__body">
-          <h2 class="card__title" id="title">User Video</h2>
-          <div class="card__meta">
-            <span id="duration">0:00</span>
-            <span id="source">Unknown</span>
-          </div>
-          <div class="btn-group">
-            <a href="#" class="btn btn--primary" id="downloadBtn" download>
-              Download MP4
-            </a>
-            <button class="btn btn--secondary" id="copyBtn">
-              Copy Link
-            </button>
-          </div>
-        </div>
-      </article>
     </section>
+
+    <!-- Footer -->
+    <footer class="footer animate-fade-in" style="animation-delay: 0.4s;">
+      <p class="footer__text">Supported platforms: YouTube, TikTok, Instagram, X (Twitter), Reddit, and more.</p>
+      <p class="footer__credit">Created by <a href="https://github.com/Pelz01" target="_blank" rel="noopener noreferrer">Pelz</a></p>
+    </footer>
   </main>
 
-  <footer>
-    <p>Built by <a href="https://twitter.com/pelz0x" target="_blank" rel="noopener noreferrer">Pelz</a></p>
-  </footer>
-  <div class="grid-overlay"></div>
   <script src="/script.js"></script>
 </body>
-
 </html>
