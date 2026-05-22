@@ -25,3 +25,51 @@ Railway is the easiest way to deploy this because it detects the `Dockerfile` au
 
 ## Why not Vercel/Netlify?
 These are "Serverless" platforms. They cannot run the heavy `ffmpeg` and `python` tools required to process video downloads. You need a container-based host like Railway or Render.
+
+---
+
+## 🐳 Self-Hosting on VPS (Docker Compose) - Isolated Folder Setup
+
+To keep this app isolated in its own space on your VPS:
+
+### 1. Structure on VPS
+We recommend organizing your apps under a dedicated directory like `~/apps/saveit/`.
+
+### 2. Deployment Steps
+
+1. **Prepare Directory**: SSH into the VPS and create a directory for the app:
+   ```bash
+   mkdir -p ~/apps/saveit
+   cd ~/apps/saveit
+   ```
+
+2. **Clone / Pull the Repo**:
+   ```bash
+   git clone https://github.com/Pelz01/saveit.git .
+   ```
+
+3. **Configure Environment**:
+   Create a `.env` file in `~/apps/saveit/`:
+   ```bash
+   nano .env
+   ```
+   Add your config:
+   ```env
+   PORT=3001
+   MAX_FILE_SIZE_MB=200
+   DOWNLOAD_DIR=/app/downloads
+   BOT_TOKEN=your_telegram_bot_token
+   ```
+
+4. **Run using Docker Compose**:
+   ```bash
+   # Build and start the container in the background
+   docker compose up -d --build
+   ```
+
+### 3. Management Commands
+
+* **Stop the app**: `docker compose down`
+* **Restart the app**: `docker compose restart`
+* **Check logs**: `docker compose logs -f`
+* **Check status**: `docker compose ps`

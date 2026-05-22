@@ -29,18 +29,8 @@ export function startServer(port: number, webhookCallback?: (req: any, res: any)
     const path = url.pathname;
 
     // ── Telegram Webhook Routing ──
-    // Log ALL POST requests to debug path mismatches
-    if (req.method === "POST") {
-      console.log(`[POST] Received request at ${path}`);
-    }
-
     if (webhookCallback && webhookPath && path === webhookPath && req.method === "POST") {
-      console.log(`[Webhook] MATCH! Delegating to Telegraf...`);
-      try {
-        await webhookCallback(req, res);
-      } catch (err: any) {
-        console.error(`[Webhook Error] ${err.message}`);
-      }
+      webhookCallback(req, res);
       return;
     }
 

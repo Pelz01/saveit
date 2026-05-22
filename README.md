@@ -1,93 +1,56 @@
-# GRABH ✨
+# SAVE ✨
 
 **The Minimalist Video Downloader** — Paste a link. Get the video.
 
-A universal video downloader powered by **Bun + TypeScript + yt-dlp**, featuring a clean web UI and a Telegram bot.
+A universal video downloader powered by **Node.js + yt-dlp**, featuring a high-end "Industrial" UI and a Telegram bot.
 
 ---
 
-## Prerequisites
+## 🚀 Deployment (The Easy Way)
 
-- [Bun](https://bun.sh) `v1.0+`
-- [yt-dlp](https://github.com/yt-dlp/yt-dlp) installed and in PATH
+**This project requires a server.** It cannot run on Vercel or Netlify because it needs `yt-dlp` (Python/FFmpeg) to process videos.
 
-```bash
-# Install Bun
-curl -fsSL https://bun.sh/install | bash
+### [Read the Deployment Guide](./DEPLOY.md)
 
-# Install yt-dlp (macOS)
-brew install yt-dlp
+We recommend **Railway** or **Render** (Free Tier available).
 
-# Install yt-dlp (Linux)
-pip install yt-dlp
-```
+1. Fork this repo.
+2. Create a new project on Railway/Render.
+3. Connect your repo.
+4. **Done.** (The included `Dockerfile` handles everything).
 
-## Setup
+---
 
+## 🛠️ Development
+
+### Prerequisites
+- Node.js v18+
+- `yt-dlp` (installed and in PATH)
+
+### Quick Start
 ```bash
 # Install dependencies
-bun install
+npm install
 
-# Copy env file
-cp .env.example .env
+# Run development server
+npm run dev
+```
+Open **http://localhost:3001**
 
-# Edit .env with your config
-# (Add BOT_TOKEN if you want the Telegram bot)
+### Environment Variables
+Rename `.env.example` to `.env`:
+```env
+PORT=3001
+MAX_FILE_SIZE_MB=200
+BOT_TOKEN=your_telegram_bot_token  # Optional
 ```
 
-## Run
+---
 
-```bash
-# Development (with hot reload)
-bun run dev
-
-# Production
-bun run start
-```
-
-Open **http://localhost:3000** to use the web UI.
-
-## Telegram Bot
-
-1. Create a bot via [@BotFather](https://t.me/BotFather)
-2. Add the token to `.env` as `BOT_TOKEN`
-3. Start the server — the bot launches automatically
-
-## Deploy with PM2
-
-```bash
-# Install PM2 globally
-npm install -g pm2
-
-# Start with ecosystem config
-pm2 start ecosystem.config.cjs
-
-# Save and setup auto-start
-pm2 save
-pm2 startup
-```
-
-## Project Structure
-
-```
-Grabh/
-├── public/           # Frontend (served by Bun)
-│   ├── index.html
-│   └── styles.css
-├── src/
-│   ├── index.ts      # Entry point
-│   ├── engine/
-│   │   └── grabh.ts  # yt-dlp wrapper
-│   ├── server/
-│   │   ├── index.ts  # API + static server
-│   │   └── mime.ts   # MIME helper
-│   └── bot/
-│       └── bot.ts    # Telegraf bot
-├── .env.example
-├── ecosystem.config.cjs
-└── package.json
-```
+## telegram Bot
+1. Add `BOT_TOKEN` to `.env`
+2. Start the server (`npm start`)
+3. Bot launches automatically.
 
 ## License
-
 MIT
