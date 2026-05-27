@@ -121,7 +121,7 @@ export async function startBot(token: string) {
       // Get video info first
       const info = await getVideoInfo(url);
 
-      // ── Start download with progress updates ──
+      // ── Start download with static status update ──
       const queueStatus = downloadQueue.status;
       const queueMsg =
         queueStatus.waiting > 0
@@ -135,44 +135,14 @@ export async function startBot(token: string) {
         undefined,
         `🎬 *${escapeMd(info.title)}*\n` +
         `👤 ${escapeMd(info.uploader)} • ⏱ ${escapeMd(info.duration_string)}\n\n` +
-        `⬇️ Downloading\\.\\.\\.${queueMsg}\n${progressBar(0)}`,
+        `⚡ Downloading video\\.\\.\\.${queueMsg}`,
         { parse_mode: "MarkdownV2" }
       ).catch(() => { });
-
-      // Animate progress while download runs
-      let downloadDone = false;
-      let currentPercent = 0;
-
-      const progressInterval = setInterval(async () => {
-        if (downloadDone) return;
-
-        // Simulate progress
-        if (currentPercent < 30) currentPercent += Math.floor(Math.random() * 8 + 3);
-        else if (currentPercent < 60) currentPercent += Math.floor(Math.random() * 5 + 2);
-        else if (currentPercent < 85) currentPercent += Math.floor(Math.random() * 3 + 1);
-        else if (currentPercent < 95) currentPercent += 1;
-        currentPercent = Math.min(currentPercent, 95);
-
-        try {
-          await ctx.telegram.editMessageText(
-            ctx.chat.id,
-            statusMsg.message_id,
-            undefined,
-            `🎬 *${escapeMd(info.title)}*\n` +
-            `👤 ${escapeMd(info.uploader)} • ⏱ ${escapeMd(info.duration_string)}\n\n` +
-            `⬇️ Downloading\\.\\.\\.\n${progressBar(currentPercent)}`,
-            { parse_mode: "MarkdownV2" }
-          );
-        } catch { }
-      }, 3000);
 
       // Download via queue
       const filePath = await downloadQueue.enqueue(url, (u) =>
         downloadVideo(u, DOWNLOAD_DIR)
       );
-
-      downloadDone = true;
-      clearInterval(progressInterval);
 
       const stats = await import("fs/promises").then(fs => fs.stat(filePath));
       const fileSize = stats.size;
@@ -192,7 +162,7 @@ export async function startBot(token: string) {
         return;
       }
 
-      // Show 100% before sending
+      // Show sending status
       await ctx.telegram
         .editMessageText(
           ctx.chat.id,
@@ -200,8 +170,7 @@ export async function startBot(token: string) {
           undefined,
           `🎬 *${escapeMd(info.title)}*\n` +
           `👤 ${escapeMd(info.uploader)} • ⏱ ${escapeMd(info.duration_string)}\n\n` +
-          `✅ Download finished\\!\n${progressBar(100)}\n\n` +
-          `_Sending it to you now\\.\\.\\._`,
+          `📤 Sending video to you\\.\\.\\.`,
           { parse_mode: "MarkdownV2" }
         )
         .catch(() => { });
