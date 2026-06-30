@@ -7,6 +7,9 @@ import { getVideoInfo, downloadVideo } from "../engine/save";
 import { downloadQueue } from "../engine/queue";
 import { message } from "telegraf/filters";
 import { InputFile } from "telegraf/types";
+import { join } from "path";
+import { readFile, writeFile, mkdir } from "fs/promises";
+import * as crypto from "crypto";
 
 
 const DOWNLOAD_DIR = process.env.DOWNLOAD_DIR || "./downloads";
@@ -28,6 +31,78 @@ function progressBar(percent: number): string {
   const empty = 10 - filled;
   return "▓".repeat(filled) + "░".repeat(empty) + ` ${percent}%`;
 }
+
+interface StatsSchema {
+  totalDownloads: number;
+  daily: { date: string; hashes: string[] };
+  weekly: { week: string; hashes: string[] };
+  monthly: { month: string; hashes: string[] };
+}
+
+function getWeekIdentifier(date: Date): string {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, "0")}`;
+}
+
+async function trackStats(chatId: number) {
+  try {
+    const statsPath = join(DOWNLOAD_DIR, "stats.json");
+    await mkdir(DOWNLOAD_DIR, { recursive: true }).catch(() => {});
+
+    let stats: StatsSchema = {
+      totalDownloads: 0,
+      daily: { date: "", hashes: [] },
+      weekly: { week: "", hashes: [] },
+      monthly: { month: "", hashes: [] },
+    };
+
+    try {
+      const raw = await readFile(statsPath, "utf-8");
+      stats = JSON.parse(raw);
+    } catch {
+      // File doesn't exist or is invalid
+    }
+
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0]; // YYYY-MM-DD
+    const weekStr = getWeekIdentifier(now); // YYYY-Www
+    const monthStr = todayStr.substring(0, 7); // YYYY-MM
+
+    if (stats.daily.date !== todayStr) {
+      stats.daily = { date: todayStr, hashes: [] };
+    }
+    if (stats.weekly.week !== weekStr) {
+      stats.weekly = { week: weekStr, hashes: [] };
+    }
+    if (stats.monthly.month !== monthStr) {
+      stats.monthly = { month: monthStr, hashes: [] };
+    }
+
+    const salt = process.env.STATS_SALT || "saveit_default_secure_salt_123987";
+    const hash = crypto.createHmac("sha256", salt).update(chatId.toString()).digest("hex");
+
+    if (!stats.daily.hashes.includes(hash)) {
+      stats.daily.hashes.push(hash);
+    }
+    if (!stats.weekly.hashes.includes(hash)) {
+      stats.weekly.hashes.push(hash);
+    }
+    if (!stats.monthly.hashes.includes(hash)) {
+      stats.monthly.hashes.push(hash);
+    }
+
+    stats.totalDownloads++;
+
+    await writeFile(statsPath, JSON.stringify(stats, null, 2), "utf-8");
+  } catch (err) {
+    console.error("[Stats Error]", err);
+  }
+}
+
 
 export async function startBot(token: string) {
   const bot = new Telegraf(token);
@@ -94,6 +169,55 @@ export async function startBot(token: string) {
       `_Everything is running smoothly\\!_`,
       { parse_mode: "MarkdownV2" }
     );
+  });
+
+  // ── /admin command ──
+  bot.command("admin", async (ctx) => {
+    const userId = ctx.from?.id;
+    const username = ctx.from?.username;
+
+    const allowedId = process.env.ADMIN_USER_ID ? parseInt(process.env.ADMIN_USER_ID, 10) : 1940921885;
+    const allowedUsername = process.env.ADMIN_USERNAME || "pelzthegreat";
+
+    if (userId !== allowedId && username !== allowedUsername) {
+      // Unauthorized: silently ignore
+      return;
+    }
+
+    try {
+      const statsPath = join(DOWNLOAD_DIR, "stats.json");
+      let stats: StatsSchema = {
+        totalDownloads: 0,
+        daily: { date: "", hashes: [] },
+        weekly: { week: "", hashes: [] },
+        monthly: { month: "", hashes: [] },
+      };
+
+      try {
+        const raw = await readFile(statsPath, "utf-8");
+        stats = JSON.parse(raw);
+      } catch {
+        // File doesn't exist or is invalid
+      }
+
+      const dailyCount = stats.daily.hashes.length;
+      const weeklyCount = stats.weekly.hashes.length;
+      const monthlyCount = stats.monthly.hashes.length;
+      const total = stats.totalDownloads;
+
+      await ctx.reply(
+        `📊 *Bot Statistics Dashboard*\n\n` +
+        `📈 *Unique Users:*\n` +
+        `• Today: ${dailyCount}\n` +
+        `• This Week: ${weeklyCount}\n` +
+        `• This Month: ${monthlyCount}\n\n` +
+        `📥 *Total Downloads:* ${total}`,
+        { parse_mode: "MarkdownV2" }
+      );
+    } catch (err: any) {
+      console.error("[Admin Command Error]", err);
+      ctx.reply(`❌ Error loading statistics: ${escapeMd(err.message)}`, { parse_mode: "MarkdownV2" }).catch(() => {});
+    }
   });
 
   // ── Handle any text message with a URL ──
@@ -184,7 +308,9 @@ export async function startBot(token: string) {
             `⏱ ${escapeMd(info.duration_string)}`,
           parse_mode: "MarkdownV2",
         }
-      ).catch((err) => {
+      ).then(async () => {
+        await trackStats(ctx.chat.id);
+      }).catch((err) => {
         console.error("[Bot Reply Error]", err);
         ctx.reply("❌ Oops, I couldn't send that video\\. It might be an invalid format\\.", { parse_mode: "MarkdownV2" }).catch(() => { });
       });
