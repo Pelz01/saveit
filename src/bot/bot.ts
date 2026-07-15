@@ -105,7 +105,7 @@ async function trackStats(chatId: number) {
 
 
 export async function startBot(token: string) {
-  const bot = new Telegraf(token);
+  const bot = new Telegraf(token, { handlerTimeout: 9_000_000 });
 
   // ── Set bot menu commands ──
   bot.telegram.setMyCommands([
