@@ -36,7 +36,8 @@ interface StatsSchema {
   totalDownloads: number;
   daily: { date: string; hashes: string[] };
   weekly: { week: string; hashes: string[] };
-  monthly: { month: string; hashes: string[] };
+  monthly: { month: string; hashes: string[]; downloads?: number };
+  monthlyHistory?: { [month: string]: { uniqueUsers: number; downloads: number } };
 }
 
 function getWeekIdentifier(date: Date): string {
@@ -57,7 +58,8 @@ async function trackStats(chatId: number) {
       totalDownloads: 0,
       daily: { date: "", hashes: [] },
       weekly: { week: "", hashes: [] },
-      monthly: { month: "", hashes: [] },
+      monthly: { month: "", hashes: [], downloads: 0 },
+      monthlyHistory: {},
     };
 
     try {
@@ -79,7 +81,22 @@ async function trackStats(chatId: number) {
       stats.weekly = { week: weekStr, hashes: [] };
     }
     if (stats.monthly.month !== monthStr) {
-      stats.monthly = { month: monthStr, hashes: [] };
+      // Save old month stats to history
+      if (stats.monthly.month) {
+        stats.monthlyHistory = stats.monthlyHistory || {};
+        stats.monthlyHistory[stats.monthly.month] = {
+          uniqueUsers: stats.monthly.hashes.length,
+          downloads: stats.monthly.downloads || 0,
+        };
+
+        // Keep only the last 12 months
+        const months = Object.keys(stats.monthlyHistory).sort();
+        while (months.length > 12) {
+          const oldest = months.shift()!;
+          delete stats.monthlyHistory[oldest];
+        }
+      }
+      stats.monthly = { month: monthStr, hashes: [], downloads: 0 };
     }
 
     const salt = process.env.STATS_SALT || "saveit_default_secure_salt_123987";
@@ -96,6 +113,7 @@ async function trackStats(chatId: number) {
     }
 
     stats.totalDownloads++;
+    stats.monthly.downloads = (stats.monthly.downloads || 0) + 1;
 
     await writeFile(statsPath, JSON.stringify(stats, null, 2), "utf-8");
   } catch (err) {
@@ -205,13 +223,22 @@ export async function startBot(token: string) {
       const monthlyCount = stats.monthly.hashes.length;
       const total = stats.totalDownloads;
 
+      let historyText = "";
+      if (stats.monthlyHistory && Object.keys(stats.monthlyHistory).length > 0) {
+        // Show newest months first
+        const sortedMonths = Object.keys(stats.monthlyHistory).sort().reverse();
+        historyText = `\n📅 *Monthly History \\(Last 12 Months\\):*\n` +
+          sortedMonths.map(m => `• *${escapeMd(m)}:* ${stats.monthlyHistory![m].uniqueUsers} users • ${stats.monthlyHistory![m].downloads} downloads`).join("\n");
+      }
+
       await ctx.reply(
         `📊 *Bot Statistics Dashboard*\n\n` +
         `📈 *Unique Users:*\n` +
         `• Today: ${dailyCount}\n` +
         `• This Week: ${weeklyCount}\n` +
         `• This Month: ${monthlyCount}\n\n` +
-        `📥 *Total Downloads:* ${total}`,
+        `📥 *Total Downloads:* ${total}\n` +
+        historyText,
         { parse_mode: "MarkdownV2" }
       );
     } catch (err: any) {
