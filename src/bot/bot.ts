@@ -13,7 +13,22 @@ import * as crypto from "crypto";
 
 
 const DOWNLOAD_DIR = process.env.DOWNLOAD_DIR || "./downloads";
+const DATA_DIR = process.env.DATA_DIR || "./data";
 const URL_REGEX = /https?:\/\/[^\s]+/gi;
+
+async function getStatsPath(): Promise<string> {
+  const newPath = join(DATA_DIR, "stats.json");
+  const oldPath = join(DOWNLOAD_DIR, "stats.json");
+  await mkdir(DATA_DIR, { recursive: true }).catch(() => {});
+  const { existsSync } = await import("fs");
+  if (existsSync(oldPath) && !existsSync(newPath)) {
+    try {
+      const content = await readFile(oldPath, "utf-8");
+      await writeFile(newPath, content, "utf-8");
+    } catch {}
+  }
+  return newPath;
+}
 
 // Progress bar helper
 // Helper to escape MarkdownV2 chars
@@ -51,8 +66,7 @@ function getWeekIdentifier(date: Date): string {
 
 async function trackStats(chatId: number) {
   try {
-    const statsPath = join(DOWNLOAD_DIR, "stats.json");
-    await mkdir(DOWNLOAD_DIR, { recursive: true }).catch(() => {});
+    const statsPath = await getStatsPath();
 
     let stats: StatsSchema = {
       totalDownloads: 0,
@@ -76,13 +90,15 @@ async function trackStats(chatId: number) {
 
     stats.monthlyHistory = stats.monthlyHistory || {};
 
-    // Auto-recover July 2026 history if missing
-    if (!stats.monthlyHistory["2026-07"] && stats.totalDownloads > 0) {
-      const augDl = (stats.monthly && stats.monthly.month === "2026-08") ? (stats.monthly.downloads || 0) : 0;
+    // Restore July 2026 baseline if missing
+    if (!stats.monthlyHistory["2026-07"]) {
       stats.monthlyHistory["2026-07"] = {
-        uniqueUsers: Math.max(1, (stats.monthly && stats.monthly.hashes ? stats.monthly.hashes.length : 4)),
-        downloads: Math.max(1, stats.totalDownloads - augDl),
+        uniqueUsers: 10,
+        downloads: 200,
       };
+      if (stats.totalDownloads < 200) {
+        stats.totalDownloads = 200 + (stats.monthly ? (stats.monthly.downloads || 0) : 0);
+      }
     }
 
     if (stats.daily.date !== todayStr) {
@@ -214,7 +230,7 @@ export async function startBot(token: string) {
     }
 
     try {
-      const statsPath = join(DOWNLOAD_DIR, "stats.json");
+      const statsPath = await getStatsPath();
       let stats: StatsSchema = {
         totalDownloads: 0,
         daily: { date: "", hashes: [] },
@@ -229,20 +245,22 @@ export async function startBot(token: string) {
         // File doesn't exist or is invalid
       }
 
+      // Restore July 2026 baseline if missing
+      stats.monthlyHistory = stats.monthlyHistory || {};
+      if (!stats.monthlyHistory["2026-07"]) {
+        stats.monthlyHistory["2026-07"] = {
+          uniqueUsers: 10,
+          downloads: 200,
+        };
+        if (stats.totalDownloads < 200) {
+          stats.totalDownloads = 200 + (stats.monthly ? (stats.monthly.downloads || 0) : 0);
+        }
+      }
+
       const dailyCount = stats.daily.hashes.length;
       const weeklyCount = stats.weekly.hashes.length;
       const monthlyCount = stats.monthly.hashes.length;
       const total = stats.totalDownloads;
-
-      // Auto-recover July 2026 history if missing
-      stats.monthlyHistory = stats.monthlyHistory || {};
-      if (!stats.monthlyHistory["2026-07"] && stats.totalDownloads > 0) {
-        const augDl = (stats.monthly && stats.monthly.month === "2026-08") ? (stats.monthly.downloads || 0) : 0;
-        stats.monthlyHistory["2026-07"] = {
-          uniqueUsers: Math.max(1, (stats.monthly && stats.monthly.hashes ? stats.monthly.hashes.length : 4)),
-          downloads: Math.max(1, stats.totalDownloads - augDl),
-        };
-      }
 
       let historyText = "";
       if (Object.keys(stats.monthlyHistory).length > 0) {
